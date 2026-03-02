@@ -22,6 +22,7 @@ button{
   padding:10px 20px;
   font-weight:bold;
   cursor:pointer;
+  margin-right:10px;
 }
 pre{
   background:#222;
@@ -30,18 +31,26 @@ pre{
   overflow-x:auto;
   white-space:pre;
 }
+.success{
+  color:#4CAF50;
+  margin-top:10px;
+}
 </style>
 </head>
 <body>
 
 <h2>Dán JSON vào đây</h2>
 <textarea id="input"></textarea>
+
 <button onclick="processData()">Chuẩn hóa</button>
+<button onclick="copyResult()">Copy kết quả</button>
 
 <h2>Kết quả</h2>
 <pre id="output"></pre>
+<div id="copyStatus" class="success"></div>
 
 <script>
+
 function extractNumbers(str){
   return str.match(/\d{3}/g) || [];
 }
@@ -71,12 +80,7 @@ function groupAndFormat(arr){
 function processData(){
 
   const raw = document.getElementById("input").value;
-  const allNumbers = extractNumbers(raw);
 
-  let unique = [...new Set(allNumbers)];
-  unique.sort((a,b)=>Number(a)-Number(b));
-
-  // Tách 2 nhóm theo mẫu có sẵn trong JSON gốc
   const dataMatch = raw.match(/"data"\s*:\s*\[(.*?)\]/s);
   const data2Match = raw.match(/"data2"\s*:\s*\[(.*?)\]/s);
 
@@ -88,7 +92,6 @@ function processData(){
   let data = [...new Set(extractNumbers(dataMatch[1]))];
   let data2 = [...new Set(extractNumbers(data2Match[1]))];
 
-  // loại trùng giữa 2
   data2 = data2.filter(n=>!data.includes(n));
 
   data.sort((a,b)=>Number(a)-Number(b));
@@ -109,7 +112,22 @@ ${groupAndFormat(data2)}
 }`;
 
   document.getElementById("output").textContent = finalJson;
+  document.getElementById("copyStatus").textContent = "";
 }
+
+function copyResult(){
+  const text = document.getElementById("output").textContent;
+
+  if(!text){
+    document.getElementById("copyStatus").textContent="Không có gì để copy";
+    return;
+  }
+
+  navigator.clipboard.writeText(text).then(()=>{
+    document.getElementById("copyStatus").textContent="Đã copy vào clipboard ✓";
+  });
+}
+
 </script>
 
 </body>
