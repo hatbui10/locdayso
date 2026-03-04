@@ -1,227 +1,154 @@
-\<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<title>Làm file Json 2 const</title>
-
+<title>Countdown Lung Linh</title>
 <style>
-body{
-  font-family: 'Segoe UI', Arial, sans-serif;
-  background: radial-gradient(circle at top, #1a1a2e, #0f0f1a);
-  color:#f5f5f5;
-  padding:30px;
-  min-height:100vh;
-}
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
-textarea{
-  margin:20px auto;
-  display:block;
-   width:85%;
-  height:260px;
-  padding:15px;
-  border-radius:14px;
-  border:1px solid rgba(255,255,255,0.1);
-  background: rgba(255,255,255,0.05);
-  backdrop-filter: blur(10px);
-  color:#fff;
-  font-size:15px;
-  box-shadow: 0 0 15px rgba(0,255,255,0.15);
-  transition: all 0.3s ease;
-}
+    body {
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-family: 'Segoe UI', sans-serif;
+        background: linear-gradient(-45deg, #0f2027, #203a43, #2c5364, #1c1c1c);
+        background-size: 400% 400%;
+        animation: gradientMove 10s ease infinite;
+        color: white;
+    }
 
-textarea:focus{
-  outline:none;
-  box-shadow: 0 0 25px rgba(0,255,255,0.6);
-  border-color: #00ffff;
-}
+    @keyframes gradientMove {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
 
-button{
-  padding:12px 22px;
-  font-weight:bold;
-  cursor:pointer;
-  margin-right:10px;
-  border:none;
-  border-radius:30px;
-  background: linear-gradient(135deg,#00f5ff,#7b2ff7);
-  color:#fff;
-  letter-spacing:1px;
-  transition: all 0.3s ease;
-  box-shadow: 0 0 12px rgba(123,47,247,0.6);
-}
+    .card {
+        background: rgba(255,255,255,0.08);
+        backdrop-filter: blur(15px);
+        padding: 50px;
+        border-radius: 20px;
+        text-align: center;
+        box-shadow: 0 0 40px rgba(0,255,255,0.3);
+        width: 320px;
+    }
 
-button:hover{
-  transform: translateY(-2px);
-  box-shadow: 0 0 25px rgba(0,255,255,0.8);
-}
+    .pair {
+        font-size: 70px;
+        font-weight: bold;
+        margin-bottom: 15px;
+        text-shadow: 0 0 15px #00ffff;
+        transition: 0.4s ease;
+    }
 
+    .timer {
+        font-size: 35px;
+        margin-bottom: 25px;
+        transition: 0.3s;
+    }
 
-h2{
-  text-align:center;
-  font-size:22px;
-  letter-spacing:1px;
-  margin-bottom:15px;
-  color:#00f5ff;
-  text-shadow: 0 0 12px rgba(0,255,255,0.6);
-}
+    .danger {
+        color: #ff4d4d;
+        text-shadow: 0 0 15px #ff0000;
+    }
 
+    input {
+        padding: 8px;
+        width: 80px;
+        text-align: center;
+        border-radius: 8px;
+        border: none;
+        margin-bottom: 15px;
+    }
 
-pre{
-  background: rgba(255,255,255,0.05);
-  padding:20px;
-  border-radius:14px;
-  overflow-x:auto;
-  margin:20px auto;
-   width:85%;
-  white-space:pre;
-  box-shadow: inset 0 0 20px rgba(0,255,255,0.15);
-}
+    button {
+        padding: 10px 25px;
+        border-radius: 10px;
+        border: none;
+        cursor: pointer;
+        font-weight: bold;
+        background: #00ffff;
+        color: black;
+        transition: 0.3s;
+    }
 
-#stats{
-  margin:20px auto;
-   width:85%;
-
-  font-weight:bold;
-  line-height:1.8;
-  padding:15px;
-  border-radius:12px;
-  background: rgba(255,255,255,0.05);
-  box-shadow: 0 0 15px rgba(0,255,255,0.2);
-}
-
-
-.success{
-  color:#00ffcc;
-  margin-top:10px;
-  font-weight:bold;
-  text-shadow: 0 0 10px rgba(0,255,200,0.7);
-}
-
-.btn-group{
-  display:flex;
-  gap:15px;
-  margin:25px auto;
-  justify-content:center;
-}
-
-
+    button:hover {
+        box-shadow: 0 0 20px #00ffff;
+        transform: scale(1.05);
+    }
 </style>
 </head>
 <body>
 
-<h2>Dán JSON vào đây</h2>
-<textarea id="input"></textarea>
-
-<div class="btn-group">
-  <button onclick="processData()">Chuẩn hóa</button>
-  <button onclick="copyResult()">Copy kết quả</button>
+<div class="card">
+    <div class="pair" id="display">Ready</div>
+    <div class="timer" id="timer">25</div>
+    <input type="number" id="startIndex" min="0" max="9" placeholder="0-9">
+    <br>
+    <button onclick="start()">Bắt đầu</button>
 </div>
 
-
-
-<h2>Kết quả</h2>
-<pre id="output"></pre>
-
-<div id="stats"></div>
-<div id="copyStatus" class="success"></div>
-
 <script>
+    const pairs = [
+        [0,5],[1,8],[2,6],[3,0],[4,9],
+        [5,1],[6,7],[7,2],[8,3],[9,4]
+    ];
 
-function extractNumbers(str){
-  return str.match(/\d{3}/g) || [];
-}
+    const display = document.getElementById("display");
+    const timerDisplay = document.getElementById("timer");
+    const startInput = document.getElementById("startIndex");
 
-function groupAndFormat(arr){
-  const groups = {};
+    let index = 0;
+    let countdownId = null;
+    let timeLeft = 25;
 
-  arr.forEach(num=>{
-    const prefix = num[0];
-    if(!groups[prefix]) groups[prefix] = [];
-    groups[prefix].push(num);
-  });
+    function showPair() {
+        display.style.opacity = 0;
 
-  let result = "";
+        setTimeout(() => {
+            display.textContent = pairs[index][0] + " = " + pairs[index][1];
+            display.style.opacity = 1;
 
-  Object.keys(groups).sort().forEach(prefix=>{
-    result += "    ";
-    result += groups[prefix]
-      .sort((a,b)=>Number(a)-Number(b))
-      .map(n=>`"${n}"`)
-      .join(",");
-    result += ",\n\n";
-  });
+            index++;
+            if (index >= pairs.length) index = 0;
 
-  return result.trim().replace(/,$/,"");
-}
+            timeLeft = 25;
+        }, 300);
+    }
 
-function processData(){
+    function startCountdown() {
+        countdownId = setInterval(() => {
+            timeLeft--;
+            timerDisplay.textContent = timeLeft;
 
-  const raw = document.getElementById("input").value;
+            if (timeLeft <= 5) {
+                timerDisplay.classList.add("danger");
+            } else {
+                timerDisplay.classList.remove("danger");
+            }
 
-  const dataMatch = raw.match(/"data"\s*:\s*\[(.*?)\]/s);
-  const data2Match = raw.match(/"data2"\s*:\s*\[(.*?)\]/s);
+            if (timeLeft <= 0) {
+                showPair();
+            }
+        }, 1000);
+    }
 
-  if(!dataMatch || !data2Match){
-    document.getElementById("output").textContent = "Không tìm thấy data hoặc data2";
-    document.getElementById("stats").textContent = "";
-    return;
-  }
+    function start() {
+        clearInterval(countdownId);
 
-  let data = [...new Set(extractNumbers(dataMatch[1]))];
-  let data2 = [...new Set(extractNumbers(data2Match[1]))];
+        let chosen = parseInt(startInput.value);
+        if (!isNaN(chosen) && chosen >= 0 && chosen <= 9) {
+            index = chosen;
+        } else {
+            index = 0;
+        }
 
-  // Loại trùng giữa 2 nhóm
-  data2 = data2.filter(n => !data.includes(n));
-
-  data.sort((a,b)=>Number(a)-Number(b));
-  data2.sort((a,b)=>Number(a)-Number(b));
-
-  const finalJson = `const data = {
-  data: [
-
-${groupAndFormat(data)}
-
-  ],
-
-  data2: [
-
-${groupAndFormat(data2)}
-
-  ]
-};`;
-
-  document.getElementById("output").textContent = finalJson;
-
-  // Thống kê
-  const totalData = data.length;
-  const totalData2 = data2.length;
-  const totalAll = totalData + totalData2;
-
-  document.getElementById("stats").innerHTML = `
-Tổng data: ${totalData} số<br>
-Tổng data2: ${totalData2} số<br>
-Tổng tất cả: ${totalAll} số
-`;
-
-  document.getElementById("copyStatus").textContent = "";
-}
-
-function copyResult(){
-  const text = document.getElementById("output").textContent;
-
-  if(!text){
-    document.getElementById("copyStatus").textContent = "Không có gì để copy";
-    return;
-  }
-
-  navigator.clipboard.writeText(text).then(()=>{
-    document.getElementById("copyStatus").textContent = "Đã copy vào clipboard ✓";
-  });
-}
-
+        timeLeft = 25;
+        showPair();
+        startCountdown();
+    }
 </script>
 
 </body>
 </html>
-
-
-
