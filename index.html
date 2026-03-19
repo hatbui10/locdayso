@@ -174,7 +174,7 @@ function processFile() {
       lines.push(filtered.slice(i, i + 5).join(", "));
     }
 
-    finalText = lines.join("\\n");
+    finalText = lines.join("\n");
     document.getElementById("output").value = finalText;
   };
 
