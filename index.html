@@ -2,153 +2,42 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<title>Countdown Lung Linh</title>
+<title>Lọc số từ file TXT</title>
 <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-
-    body {
-    min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;   /* đổi từ center thành flex-start */
-    padding-top: 40px;         /* cách mép trên 40px */
-    font-family: 'Segoe UI', sans-serif;
-    background: linear-gradient(-45deg, #0f2027, #203a43, #2c5364, #1c1c1c);
-    background-size: 400% 400%;
-    animation: gradientMove 10s ease infinite;
-    color: white;
-    }
-
-    .card {
-        background: rgba(255,255,255,0.08);
-        backdrop-filter: blur(15px);
-        padding: 50px;
-        border-radius: 20px;
-        text-align: center;
-        box-shadow: 0 0 40px rgba(0,255,255,0.3);
-        width: 320px;
-    }
-
-    .pair {
-        font-size: 70px;
-        font-weight: bold;
-        margin-bottom: 15px;
-        text-shadow: 0 0 15px #00ffff;
-        transition: 0.4s ease;
-    }
-
-    .timer {
-        font-size: 35px;
-        margin-bottom: 25px;
-        transition: 0.3s;
-    }
-
-    .danger {
-        color: #ff4d4d;
-        text-shadow: 0 0 15px #ff0000;
-    }
-
-    input {
-        padding: 8px;
-        width: 80px;
-        text-align: center;
-        border-radius: 8px;
-        border: none;
-        margin-bottom: 15px;
-    }
-
-    button {
-        padding: 10px 25px;
-        border-radius: 10px;
-        border: none;
-        cursor: pointer;
-        font-weight: bold;
-        background: #00ffff;
-        color: black;
-        transition: 0.3s;
-    }
-
-    button:hover {
-        box-shadow: 0 0 20px #00ffff;
-        transform: scale(1.05);
-    }
+body { font-family: sans-serif; padding: 20px; }
+textarea { width: 100%; height: 300px; margin-top: 10px; }
 </style>
 </head>
 <body>
 
-<div class="card">
-    <div class="pair" id="display">Ready</div>
-    <div class="timer" id="timer">27</div>
-    <input type="number" id="startIndex" min="0" max="9" placeholder="0-9">
-    <br>
-    <button onclick="start()">Bắt đầu</button>
-</div>
+<h2>Upload file TXT</h2>
+<input type="file" id="fileInput">
+
+<h3>Kết quả:</h3>
+<textarea id="output"></textarea>
 
 <script>
-    const pairs = [
-        [0,5],[1,8],[2,6],[3,0],[4,9],
-        [5,1],[6,7],[7,2],[8,3],[9,4]
-    ];
+document.getElementById("fileInput").addEventListener("change", function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
 
-    const display = document.getElementById("display");
-    const timerDisplay = document.getElementById("timer");
-    const startInput = document.getElementById("startIndex");
+  const reader = new FileReader();
 
-    let index = 0;
-    let countdownId = null;
-    let timeLeft = 27;
+  reader.onload = function(event) {
+    const text = event.target.result;
 
-    function showPair() {
-        display.style.opacity = 0;
+    // Lấy tất cả chuỗi số (5 chữ số)
+    const numbers = text.match(/\d+/g) || [];
 
-        setTimeout(() => {
-            display.textContent = pairs[index][0] + " = " + pairs[index][1];
-            display.style.opacity = 1;
+    // Lọc số bắt đầu bằng 3
+    const result = numbers.filter(num => num.startsWith("3"));
 
-            index++;
-            if (index >= pairs.length) index = 0;
+    document.getElementById("output").value = result.join(", ");
+  };
 
-            timeLeft = 27;
-        }, 300);
-    }
-
-    function startCountdown() {
-        countdownId = setInterval(() => {
-            timeLeft--;
-            timerDisplay.textContent = timeLeft;
-
-            if (timeLeft <= 5) {
-                timerDisplay.classList.add("danger");
-            } else {
-                timerDisplay.classList.remove("danger");
-            }
-
-            if (timeLeft <= 0) {
-                showPair();
-            }
-        }, 1000);
-    }
-
-    function start() {
-        clearInterval(countdownId);
-
-        let chosen = parseInt(startInput.value);
-        if (!isNaN(chosen) && chosen >= 0 && chosen <= 9) {
-            index = chosen;
-        } else {
-            index = 0;
-        }
-
-        timeLeft = 27;
-        showPair();
-        startCountdown();
-    }
+  reader.readAsText(file);
+});
 </script>
 
 </body>
 </html>
-
-
-
-
-
