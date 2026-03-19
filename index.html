@@ -3,40 +3,38 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lọc số từ TXT</title>
+<title>Lọc số đa năng</title>
 
 <style>
 body {
   font-family: 'Segoe UI', sans-serif;
   background: linear-gradient(135deg, #667eea, #764ba2);
-  color: #fff;
   margin: 0;
   padding: 20px;
+  color: #fff;
 }
 
 .container {
   max-width: 600px;
   margin: auto;
   background: rgba(255,255,255,0.1);
-  backdrop-filter: blur(10px);
-  border-radius: 20px;
+  backdrop-filter: blur(12px);
   padding: 20px;
+  border-radius: 20px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.3);
 }
 
 h2 {
   text-align: center;
-  margin-bottom: 20px;
 }
 
-input[type="file"],
-input[type="text"] {
-  width: 100%;
-  padding: 10px;
+input, button, textarea {
+  width: 90%;
+  margin-top: 10px;
   border-radius: 10px;
   border: none;
-  margin-top: 10px;
-  outline: none;
+  padding: 10px;
+  font-size: 14px;
 }
 
 input[type="text"] {
@@ -45,11 +43,6 @@ input[type="text"] {
 }
 
 button {
-  width: 100%;
-  padding: 12px;
-  margin-top: 10px;
-  border: none;
-  border-radius: 12px;
   background: #fff;
   color: #333;
   font-weight: bold;
@@ -59,68 +52,57 @@ button {
 
 button:hover {
   transform: scale(1.05);
-  background: #f1f1f1;
 }
 
 textarea {
-  width: 100%;
   height: 250px;
-  margin-top: 15px;
-  border-radius: 12px;
-  border: none;
-  padding: 10px;
   resize: none;
-  font-size: 14px;
 }
 
-.footer {
-  text-align: center;
-  margin-top: 10px;
-  font-size: 12px;
-  opacity: 0.7;
-}
 </style>
-
 </head>
+
 <body>
 
 <div class="container">
-  <h2>🔢 Lọc số từ file TXT</h2>
+  <h2>🔢 Lọc số từ mọi loại file</h2>
 
-  <input type="file" id="fileInput" accept=".txt">
+  <input type="file" id="fileInput">
 
   <label>Nhập số bắt đầu:</label>
   <input type="text" id="filterInput" value="3">
 
+  <button onclick="processFile()">🔍 Lọc số</button>
   <button onclick="copyResult()">📋 Copy</button>
   <button onclick="downloadFile()">⬇️ Xuất file</button>
 
   <textarea id="output" placeholder="Kết quả sẽ hiển thị ở đây..."></textarea>
-
-  <div class="footer">Tool nhỏ nhưng có võ 😏</div>
 </div>
 
 <script>
 let finalText = "";
 
-document.getElementById("fileInput").addEventListener("change", processFile);
-document.getElementById("filterInput").addEventListener("input", processFile);
-
 function processFile() {
   const file = document.getElementById("fileInput").files[0];
   const filterValue = document.getElementById("filterInput").value;
 
-  if (!file) return;
+  if (!file) {
+    alert("Chưa chọn file 😐");
+    return;
+  }
 
   const reader = new FileReader();
 
   reader.onload = function(event) {
     const text = event.target.result;
 
-    const numbers = text.match(/\\d{5}/g) || [];
+    // Lấy tất cả số trong file
+    const numbers = text.match(/\\d+/g) || [];
 
+    // Lọc theo số nhập
     const filtered = numbers.filter(num => num.startsWith(filterValue));
 
+    // Chia 5 số mỗi dòng
     let lines = [];
     for (let i = 0; i < filtered.length; i += 5) {
       lines.push(filtered.slice(i, i + 5).join(", "));
