@@ -167,8 +167,13 @@ function processFile() {
 
     const numbers = text.match(/\d+/g) || [];
 
-    const filtered = numbers.filter(num => num.startsWith(filterValue));
+    const filtered = numbers
+  .filter(num => num.startsWith(filterValue))
+  .map(Number)          // chuyển sang số
+  .sort((a, b) => a - b) // sắp xếp tăng dần
+  .map(String);         // chuyển lại về chuỗi
 
+    
     let lines = [];
     for (let i = 0; i < filtered.length; i += 5) {
       lines.push(filtered.slice(i, i + 5).join(", "));
