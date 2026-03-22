@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lọc số 10 chữ số</title>
+<title>Lọc số</title>
 
 <style>
 body {
@@ -19,15 +19,16 @@ body {
 
 .container {
   width: 95%;
-  max-width: 600px;
+  max-width: 500px;
   background: #111827;
   padding: 20px;
   border-radius: 20px;
 }
 
-input, textarea, button {
-  width: 100%;
-  margin-top: 10px;
+input, button {
+  width: 80%;
+  margin: 10px auto 0;
+  display: block;
   padding: 10px;
   border-radius: 10px;
   border: none;
@@ -41,13 +42,6 @@ input {
   color: #fff;
 }
 
-textarea {
-  height: 250px;
-  background: #000;
-  color: #0f0;
-  font-family: monospace;
-}
-
 button {
   background: #6366f1;
   color: #fff;
@@ -55,9 +49,26 @@ button {
   cursor: pointer;
 }
 
+/* 👉 div giả textarea */
+.output-box {
+  width: 100%;
+  height: 260px;
+  margin-top: 15px;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid #374151;
+  background: #000;
+  overflow-y: auto;
+  font-family: monospace;
+  white-space: pre-wrap;
+  color: #ccc;
+}
+
+/* 👉 highlight sáng + to */
 .highlight {
-  color: #ff3b3b;
+  color: #00ffcc;
   font-weight: bold;
+  font-size: 1.3em;
 }
 </style>
 </head>
@@ -65,20 +76,20 @@ button {
 <body>
 
 <div class="container">
-  <h2>🔢 Lọc số</h2>
+  <h2 style="text-align:center">🔢 Lọc số</h2>
 
   <input type="file" id="fileInput">
 
   <input type="tel"
          id="filterInput"
-         placeholder="Nhập 2 số (00-99)"
+         placeholder="Nhập 2 số"
          maxlength="2">
 
   <button onclick="processFile()">🔍 Lọc</button>
   <button onclick="copyResult()">📋 Copy</button>
   <button onclick="downloadFile()">⬇️ Xuất file</button>
 
-  <div id="output" style="white-space: pre-wrap; margin-top:10px;"></div>
+  <div id="output" class="output-box">Kết quả sẽ hiện ở đây...</div>
 </div>
 
 <script>
@@ -95,30 +106,28 @@ document.getElementById("fileInput").addEventListener("change", function(e) {
   reader.onload = function(event) {
     const text = event.target.result;
 
-    // 🔥 file đã là dãy 10 số → chỉ cần tách
     numbers = text.split(/\s+/).filter(s => s.length === 10);
 
     const input = document.getElementById("filterInput");
     input.focus();
-
-    // đảm bảo mobile bật bàn phím
     setTimeout(() => input.focus(), 200);
   };
 
   reader.readAsText(file);
 });
 
-// lọc + highlight
+// lọc
 function processFile() {
   const keyword = document.getElementById("filterInput").value;
   const output = document.getElementById("output");
 
   if (keyword.length !== 2) {
-    alert("Nhập đủ 2 số đi 😐");
+    alert("Nhập đủ 2 số 😐");
     return;
   }
 
   let html = "";
+  let text = "";
 
   numbers.forEach(num => {
     if (num.includes(keyword)) {
@@ -129,10 +138,11 @@ function processFile() {
       );
 
       html += highlighted + "\n";
+      text += num + "\n";
     }
   });
 
-  finalText = html.replace(/<[^>]+>/g, "");
+  finalText = text;
   output.innerHTML = html || "Không có kết quả";
 }
 
