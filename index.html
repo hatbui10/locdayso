@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lọc số</title>
+<title>Lọc số - Bản nâng cấp lọc trùng</title>
 
 <style>
 body {
@@ -49,7 +49,6 @@ button {
   cursor: pointer;
 }
 
-/* 👉 div giả textarea */
 .output-box {
   width: 80%;
   height: 260px;
@@ -64,11 +63,17 @@ button {
   color: #ccc;
 }
 
-/* 👉 highlight sáng + to */
 .highlight {
   color: #00ffcc;
   font-weight: bold;
   font-size: 1.3em;
+}
+
+.info-text {
+  text-align: center;
+  font-size: 0.9em;
+  color: #94a3b8;
+  margin-top: 10px;
 }
 </style>
 </head>
@@ -76,88 +81,105 @@ button {
 <body>
 
 <div class="container">
-  <h2 style="text-align:center">🔢 Lọc số</h2>
+  <h2 style="text-align:center">🔢 Lọc số (Không trùng)</h2>
 
-  <input type="file" id="fileInput">
+  <input type="file" id="fileInput" accept=".txt">
 
   <input type="tel"
          id="filterInput"
          placeholder="Nhập 2 số"
          maxlength="2">
 
-  <button onclick="processFile()">🔍 Lọc</button>
+  <button onclick="processFile()">🔍 Lọc & Loại trùng</button>
   <button onclick="copyResult()">📋 Copy</button>
   <button onclick="downloadFile()">⬇️ Xuất file</button>
 
+  <div id="status" class="info-text">Chưa có dữ liệu</div>
   <div id="output" class="output-box">Kết quả sẽ hiện ở đây...</div>
 </div>
 
 <script>
-let numbers = [];
+let uniqueNumbers = []; // Mảng chứa các số duy nhất
 let finalText = "";
 
-// đọc file
+// 1. Đọc file và xử lý lọc trùng ngay khi nạp
 document.getElementById("fileInput").addEventListener("change", function(e) {
   const file = e.target.files[0];
   if (!file) return;
 
   const reader = new FileReader();
-
   reader.onload = function(event) {
     const text = event.target.result;
 
-    numbers = text.split(/\s+/).filter(s => s.length === 10);
+    // Tách các chuỗi có 10 ký tự
+    const allNumbers = text.split(/\s+/).filter(s => s.length === 10);
+    
+    // LOẠI BỎ TRÙNG LẶP bằng Set
+    uniqueNumbers = [...new Set(allNumbers)];
 
+    document.getElementById("status").innerText = `Đã nạp ${uniqueNumbers.length} số (đã lọc trùng)`;
+    
     const input = document.getElementById("filterInput");
     input.focus();
-    setTimeout(() => input.focus(), 200);
   };
-
   reader.readAsText(file);
 });
 
-// lọc
+// 2. Hàm xử lý lọc theo 2 số đã nhập
 function processFile() {
   const keyword = document.getElementById("filterInput").value;
   const output = document.getElementById("output");
 
   if (keyword.length !== 2) {
-    alert("Nhập đủ 2 số 😐");
+    alert("Nhập đủ 2 số để lọc nhé! 😐");
     return;
   }
 
-  let html = "";
-  let text = "";
+  let htmlResult = "";
+  let textResult = "";
+  let count = 0;
 
-  numbers.forEach(num => {
+  // Lọc từ mảng uniqueNumbers đã sạch
+  uniqueNumbers.forEach(num => {
     if (num.includes(keyword)) {
-
+      // Highlight số khớp
       const highlighted = num.replace(
         new RegExp(keyword, "g"),
         `<span class="highlight">${keyword}</span>`
       );
 
-      html += highlighted + "\n";
-      text += num + "\n";
+      htmlResult += highlighted + "\n";
+      textResult += num + "\n";
+      count++;
     }
   });
 
-  finalText = text;
-  output.innerHTML = html || "Không có kết quả";
+  finalText = textResult.trim(); // Xóa khoảng trắng thừa cuối file
+  output.innerHTML = htmlResult || "Không tìm thấy kết quả phù hợp.";
+  document.getElementById("status").innerText = `Tìm thấy ${count} số khớp với "${keyword}"`;
 }
 
-// copy
+// 3. Hàm Copy
 function copyResult() {
-  navigator.clipboard.writeText(finalText);
-  alert("Đã copy 😎");
+  if (!finalText) {
+    alert("Chưa có kết quả để copy!");
+    return;
+  }
+  navigator.clipboard.writeText(finalText).then(() => {
+    alert("Đã copy danh sách sạch! 😎");
+  });
 }
 
-// download
+// 4. Hàm Xuất File
 function downloadFile() {
+  if (!finalText) {
+    alert("Dữ liệu trống, không thể xuất file!");
+    return;
+  }
   const blob = new Blob([finalText], { type: "text/plain" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = "ketqua.txt";
+  a.download = "ketqua_da_loc_trung.txt";
   a.click();
 }
 </script>
