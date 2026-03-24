@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lọc số - Bản nâng cấp lọc trùng</title>
+<title>Lọc số - Tách số sau Input</title>
 
 <style>
 body {
@@ -51,7 +51,7 @@ button {
 
 .output-box {
   width: 80%;
-  height: 260px;
+  height: 300px;
   margin: 15px auto 0;
   padding: 10px;
   border-radius: 10px;
@@ -59,14 +59,17 @@ button {
   background: #000;
   overflow-y: auto;
   font-family: monospace;
-  white-space: pre-wrap;
+  white-space: pre; /* Quan trọng để thẳng cột */
   color: #ccc;
 }
 
 .highlight {
-  color: #00ffcc;
+  color: #94a3b8; /* Số gốc mờ đi chút */
+}
+
+.next-numbers {
+  color: #00ffcc; /* Số phía sau nổi bật */
   font-weight: bold;
-  font-size: 1.3em;
 }
 
 .info-text {
@@ -81,16 +84,16 @@ button {
 <body>
 
 <div class="container">
-  <h2 style="text-align:center">🔢 Lọc số (Không trùng)</h2>
+  <h2 style="text-align:center">🔢 Lọc & Tách Số Sau</h2>
 
   <input type="file" id="fileInput" accept=".txt">
 
   <input type="tel"
          id="filterInput"
-         placeholder="Nhập 2 số"
+         placeholder="Nhập số"
          maxlength="2">
 
-  <button onclick="processFile()">🔍 Lọc & Loại trùng</button>
+  <button onclick="processFile()">🔍 Lọc & Tách</button>
   <button onclick="copyResult()">📋 Copy</button>
   <button onclick="downloadFile()">⬇️ Xuất file</button>
 
@@ -99,10 +102,9 @@ button {
 </div>
 
 <script>
-let uniqueNumbers = []; // Mảng chứa các số duy nhất
+let uniqueNumbers = []; 
 let finalText = "";
 
-// 1. Đọc file và xử lý lọc trùng ngay khi nạp
 document.getElementById("fileInput").addEventListener("change", function(e) {
   const file = e.target.files[0];
   if (!file) return;
@@ -110,28 +112,20 @@ document.getElementById("fileInput").addEventListener("change", function(e) {
   const reader = new FileReader();
   reader.onload = function(event) {
     const text = event.target.result;
-
-    // Tách các chuỗi có 10 ký tự
     const allNumbers = text.split(/\s+/).filter(s => s.length === 10);
-    
-    // LOẠI BỎ TRÙNG LẶP bằng Set
     uniqueNumbers = [...new Set(allNumbers)];
-
     document.getElementById("status").innerText = `Đã nạp ${uniqueNumbers.length} số (đã lọc trùng)`;
-    
-    const input = document.getElementById("filterInput");
-    input.focus();
+    document.getElementById("filterInput").focus();
   };
   reader.readAsText(file);
 });
 
-// 2. Hàm xử lý lọc theo 2 số đã nhập
 function processFile() {
   const keyword = document.getElementById("filterInput").value;
   const output = document.getElementById("output");
 
-  if (keyword.length !== 2) {
-    alert("Nhập đủ 2 số để lọc nhé! 😐");
+  if (keyword.length === 0) {
+    alert("Vui lòng nhập số!");
     return;
   }
 
@@ -139,47 +133,40 @@ function processFile() {
   let textResult = "";
   let count = 0;
 
-  // Lọc từ mảng uniqueNumbers đã sạch
   uniqueNumbers.forEach(num => {
     if (num.includes(keyword)) {
-      // Highlight số khớp
-      const highlighted = num.replace(
-        new RegExp(keyword, "g"),
-        `<span class="highlight">${keyword}</span>`
-      );
-
-      htmlResult += highlighted + "\n";
-      textResult += num + "\n";
-      count++;
+      // Tìm vị trí đầu tiên của keyword
+      const index = num.indexOf(keyword);
+      // Lấy phần phía sau keyword
+      const after = num.substring(index + keyword.length);
+      
+      if (after.length > 0) {
+        // Căn lề: Dùng padEnd để dãy số gốc luôn dài 12 ký tự, tạo cột thẳng
+        const padding = num.padEnd(12, " ");
+        
+        htmlResult += padding + `➔ <span class="next-numbers">${after}</span>\n`;
+        textResult += padding + `-> ${after}\n`;
+        count++;
+      }
     }
   });
 
-  finalText = textResult.trim(); // Xóa khoảng trắng thừa cuối file
-  output.innerHTML = htmlResult || "Không tìm thấy kết quả phù hợp.";
-  document.getElementById("status").innerText = `Tìm thấy ${count} số khớp với "${keyword}"`;
+  finalText = textResult.trim();
+  output.innerHTML = htmlResult || "Không tìm thấy số nào có phần phía sau.";
+  document.getElementById("status").innerText = `Tìm thấy ${count} kết quả cho "${keyword}"`;
 }
 
-// 3. Hàm Copy
 function copyResult() {
-  if (!finalText) {
-    alert("Chưa có kết quả để copy!");
-    return;
-  }
-  navigator.clipboard.writeText(finalText).then(() => {
-    alert("Đã copy danh sách sạch! 😎");
-  });
+  if (!finalText) return;
+  navigator.clipboard.writeText(finalText).then(() => alert("Đã copy!"));
 }
 
-// 4. Hàm Xuất File
 function downloadFile() {
-  if (!finalText) {
-    alert("Dữ liệu trống, không thể xuất file!");
-    return;
-  }
+  if (!finalText) return;
   const blob = new Blob([finalText], { type: "text/plain" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = "ketqua_da_loc_trung.txt";
+  a.download = "ketqua_tach_so.txt";
   a.click();
 }
 </script>
