@@ -1,221 +1,128 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lọc số - Tách số sau Input</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sắp xếp & Gom nhóm số</title>
+    <style>
+        body {
+            margin: 0; padding: 20px; min-height: 100vh;
+            background: linear-gradient(135deg, #141e30 0%, #243b55 100%);
+            color: #ffffff; font-family: 'Segoe UI', sans-serif;
+            display: flex; justify-content: center;
+        }
+        .container { width: 100%; max-width: 550px; display: flex; flex-direction: column; }
+        .controls { width: 100%; display: flex; flex-direction: column; gap: 10px; }
+        .row { display: flex; gap: 10px; width: 100%; }
+        
+        button, .btn-upload {
+            flex: 1; padding: 14px; border-radius: 12px; font-weight: bold;
+            border: none; cursor: pointer; transition: 0.2s;
+            text-align: center; font-size: 14px;
+        }
+        .btn-upload { background: #4b6cb7; color: white; display: block; }
+        .btn-run { background: #6c5ce7; color: white; }
+        .btn-sort { background: #00b894; color: white; }
+        .btn-export { background: #e17055; color: white; margin-top: 10px; }
+        
+        button:hover { filter: brightness(1.2); transform: translateY(-1px); }
+        #fileInput { display: none; }
 
-<style>
-body {
-  margin: 0;
-  font-family: sans-serif;
-  background: #0f172a;
-  color: #fff;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-}
-
-.container {
-  width: 95%;
-  max-width: 500px;
-  background: #111827;
-  padding: 20px;
-  border-radius: 20px;
-}
-
-input, button {
-  width: 80%;
-  margin: 10px auto 0;
-  display: block;
-  padding: 10px;
-  border-radius: 10px;
-  border: none;
-}
-
-input {
-  text-align: center;
-  font-size: 22px;
-  letter-spacing: 5px;
-  background: #1f2937;
-  color: #fff;
-}
-
-button {
-  background: #6366f1;
-  color: #fff;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-.output-box {
-  width: 80%;
-  height: 300px;
-  margin: 15px auto 0;
-  padding: 10px;
-  border-radius: 10px;
-  border: 1px solid #374151;
-  background: #000;
-  overflow-y: auto;
-  font-family: monospace;
-  white-space: pre;
-  color: #ccc;
-}
-
-.next-numbers {
-  color: #00ffcc;
-  font-weight: bold;
-}
-
-.info-text {
-  text-align: center;
-  font-size: 0.9em;
-  color: #94a3b8;
-  margin-top: 10px;
-}
-</style>
+        textarea {
+            width: 100%; height: 65vh; margin-top: 15px; border-radius: 15px;
+            background: rgba(0, 0, 0, 0.3); color: #00ffcc; border: 1px solid #444;
+            padding: 30px; box-sizing: border-box; line-height: 1.8;
+            font-family: 'Consolas', monospace; font-size: 16px;
+            resize: none; outline: none;
+        }
+        #status { font-size: 13px; color: #aaa; margin-top: 10px; text-align: center; }
+    </style>
 </head>
-
 <body>
 
 <div class="container">
-  <h2 style="text-align:center">🔢 Lọc & Tách Số Sau</h2>
+    <div class="controls">
+        <label for="fileInput" class="btn-upload">📁 Tải File</label>
+        <input type="file" id="fileInput" accept=".txt">
+        <div class="row">
+            <button onclick="toOneColumn()" class="btn-run">⚡ Gom cột</button>
+            <button onclick="processData()" class="btn-sort">🔢 Sắp xếp & Gom nhóm</button>
+        </div>
+        <button onclick="exportTxt()" class="btn-export">💾 Xuất File .txt</button>
+    </div>
 
-  <input type="file" id="fileInput" accept=".txt">
-  <div id="abResult" class="output-box" style="height:100px;color:#00ffcc;">
-    Kết quả AB sẽ hiện ở đây...
-  </div>
-
-  <input type="tel" id="filterInput" placeholder="Nhập số" maxlength="2">
-
-  <button onclick="processFile()">🔍 Lọc & Tách</button>
-  <button onclick="copyResult()">📋 Copy</button>
-  <button onclick="downloadFile()">⬇️ Xuất file</button>
-
-  <div id="status" class="info-text">Chưa có dữ liệu</div>
-
-  <div id="output" class="output-box">Kết quả sẽ hiện ở đây...</div>
-
-  </div>
+    <textarea id="dataBox" placeholder="Kết quả hiển thị tại đây..."></textarea>
+    <div id="status">Sẵn sàng</div>
+</div>
 
 <script>
-let uniqueNumbers = [];
-let finalText = "";
+    const dataBox = document.getElementById("dataBox");
+    const status = document.getElementById("status");
 
-// đọc file
-document.getElementById("fileInput").addEventListener("change", function(e) {
-  const file = e.target.files[0];
-  if (!file) return;
+    document.getElementById("fileInput").addEventListener("change", e => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = e => {
+            dataBox.value = e.target.result;
+            status.innerText = "Đã nhận file.";
+        };
+        reader.readAsText(file);
+    });
 
-  const reader = new FileReader();
-  reader.onload = function(event) {
-    const text = event.target.result;
-    const allNumbers = text.split(/\s+/).filter(s => s.length === 10);
-    uniqueNumbers = [...new Set(allNumbers)];
-    document.getElementById("status").innerText =
-      `Đã nạp ${uniqueNumbers.length} số`;
-  };
-  reader.readAsText(file);
-});
-
-// tạo tất cả pattern a/b độ dài n
-function generateAB(n){
-  let result = [];
-  let total = Math.pow(2, n);
-
-  for(let i = 0; i < total; i++){
-    let bin = i.toString(2).padStart(n, '0');
-    let str = bin.replace(/0/g, 'a').replace(/1/g, 'b');
-    result.push(str);
-  }
-
-  return result;
-}
-
-// kiểm tra ≥2 vị trí trùng
-function isValid(p, arr){
-  return arr.every(target => {
-    let match = 0;
-
-    for(let i = 0; i < 6; i++){
-      if(p[i] === target[i]) match++;
+    function toOneColumn() {
+        let numbers = dataBox.value.match(/\d+/g) || [];
+        dataBox.value = numbers.join("\n");
+        status.innerText = "Đã đưa về 1 cột.";
     }
 
-    return match >= 2;
-  });
-}
+    function processData() {
+        let raw = dataBox.value;
+        let numbers = raw.match(/\d+/g) || [];
 
-function processFile() {
-  const keyword = document.getElementById("filterInput").value;
-  const output = document.getElementById("output");
-  const abBox = document.getElementById("abResult");
+        // 1. Lọc trùng và chỉ lấy số có độ dài >= 10
+        let unique = [...new Set(numbers)].filter(n => n.length >= 10);
 
-  if (!keyword) {
-    alert("Nhập số đi 😑");
-    return;
-  }
+        // 2. Sắp xếp chuẩn
+        unique.sort((a, b) => {
+            if (a.length !== b.length) return a.length - b.length;
+            return a.localeCompare(b);
+        });
 
-  let htmlResult = "";
-  let textResult = "";
-  let count = 0;
-  let patterns = [];
+        // 3. Xử lý tách chuỗi và gom nhóm
+        let finalResult = [];
+        let lastPrefix = "";
 
-  uniqueNumbers.forEach(num => {
-    if (num.includes(keyword)) {
-      const index = num.indexOf(keyword);
-      const after = num.substring(index + keyword.length);
+        unique.forEach(num => {
+            let prefix = num.substring(0, 2); // 2 số đầu
+            let middle = num.substring(2, 8); // 6 số giữa
+            let suffix = num.substring(8);    // Phần còn lại (2 số cuối hoặc hơn)
 
-      if (after.length > 0) {
-        const padding = num.padEnd(12, " ");
-        htmlResult += padding + `➔ <span class="next-numbers">${after}</span>\n`;
-        textResult += padding + `-> ${after}\n`;
-        count++;
-      }
+            // Nếu đổi đầu số mới thì cách ra 1 dòng để tạo khối
+            if (lastPrefix !== "" && prefix !== lastPrefix) {
+                finalResult.push(""); 
+            }
 
-      // xử lý AB
-      if (after.length >= 6) {
-        const first6 = after.slice(0,6);
-        const ab = first6.split('').map(x => x < 5 ? 'a' : 'b').join('');
-        patterns.push(ab);
-      }
+            finalResult.push(`${prefix} - ${middle} - ${suffix}`);
+            lastPrefix = prefix;
+        });
+
+        dataBox.value = finalResult.join("\n");
+        status.innerText = `Đã gom thành các khối theo đầu số.`;
+        dataBox.scrollTop = 0;
     }
-  });
 
-  patterns = [...new Set(patterns)];
-
-  if(patterns.length === 0){
-    abBox.innerText = "Không có dữ liệu để phân tích";
-  } else {
-    const allAB = generateAB(6);
-    const found = allAB.filter(p => isValid(p, patterns));
-
-    abBox.innerText = found.length
-      ? "Pattern hợp lệ:\n" + found.join("  ")
-      : "Không có pattern phù hợp 😢";
-  }
-
-  finalText = textResult.trim();
-  output.innerHTML = htmlResult || "Không tìm thấy";
-  document.getElementById("status").innerText =
-    `Tìm thấy ${count} kết quả`;
-}
-
-// copy
-function copyResult() {
-  if (!finalText) return;
-  navigator.clipboard.writeText(finalText);
-}
-
-// tải file
-function downloadFile() {
-  if (!finalText) return;
-  const blob = new Blob([finalText], { type: "text/plain" });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "ketqua.txt";
-  a.click();
-}
+    function exportTxt() {
+        const content = dataBox.value;
+        if (!content.trim()) return;
+        const blob = new Blob([content], { type: "text/plain" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "ket_qua_gom_nhom.txt";
+        a.click();
+        URL.revokeObjectURL(url);
+    }
 </script>
 
 </body>
