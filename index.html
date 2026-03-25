@@ -185,6 +185,15 @@ const allAB = [
   "bbaa","bbab","bbba","bbbb"
 ];
 
+// check điều kiện “đụng hết”
+function isValid(p, arr){
+  return arr.every(target => {
+    for(let i=0;i<4;i++){
+      if(p[i] === target[i]) return true;
+    }
+    return false;
+  });
+}
 
 let found = allAB.filter(p => isValid(p, patterns));
 
@@ -207,18 +216,7 @@ function toAB(str){
   return str.split('').map(x => x < 5 ? 'a' : 'b').join('');
 }
 
-// kiểm tra 1 pattern có match hết không
-function isValid(p, arr){
-  return arr.every(target => {
-    let matchCount = 0;
 
-    for(let i = 0; i < 4; i++){
-      if(p[i] === target[i]) matchCount++;
-    }
-
-    return matchCount >= 2; // 👈 chỗ quan trọng
-  });
-}
 
 function copyResult() {
   if (!finalText) return;
