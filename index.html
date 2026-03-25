@@ -59,16 +59,12 @@ button {
   background: #000;
   overflow-y: auto;
   font-family: monospace;
-  white-space: pre; /* Quan trọng để thẳng cột */
+  white-space: pre;
   color: #ccc;
 }
 
-.highlight {
-  color: #94a3b8; /* Số gốc mờ đi chút */
-}
-
 .next-numbers {
-  color: #00ffcc; /* Số phía sau nổi bật */
+  color: #00ffcc;
   font-weight: bold;
 }
 
@@ -87,29 +83,27 @@ button {
   <h2 style="text-align:center">🔢 Lọc & Tách Số Sau</h2>
 
   <input type="file" id="fileInput" accept=".txt">
+  <div id="output" class="output-box">Kết quả sẽ hiện ở đây...</div>
 
-  <input type="tel"
-         id="filterInput"
-         placeholder="Nhập số"
-         maxlength="2">
-         
-         <div id="abResult" class="output-box" style="height:80px;color:#00ffcc;">
-  Kết quả AB sẽ hiện ở đây...
-</div>
-
+  <input type="tel" id="filterInput" placeholder="Nhập số" maxlength="2">
 
   <button onclick="processFile()">🔍 Lọc & Tách</button>
   <button onclick="copyResult()">📋 Copy</button>
   <button onclick="downloadFile()">⬇️ Xuất file</button>
 
   <div id="status" class="info-text">Chưa có dữ liệu</div>
-  <div id="output" class="output-box">Kết quả sẽ hiện ở đây...</div>
+
+  
+  <div id="abResult" class="output-box" style="height:100px;color:#00ffcc;">
+    Kết quả AB sẽ hiện ở đây...
+  </div>
 </div>
 
 <script>
-let uniqueNumbers = []; 
+let uniqueNumbers = [];
 let finalText = "";
 
+// đọc file
 document.getElementById("fileInput").addEventListener("change", function(e) {
   const file = e.target.files[0];
   if (!file) return;
@@ -119,116 +113,107 @@ document.getElementById("fileInput").addEventListener("change", function(e) {
     const text = event.target.result;
     const allNumbers = text.split(/\s+/).filter(s => s.length === 10);
     uniqueNumbers = [...new Set(allNumbers)];
-    document.getElementById("status").innerText = `Đã nạp ${uniqueNumbers.length} số (đã lọc trùng)`;
-    document.getElementById("filterInput").focus();
+    document.getElementById("status").innerText =
+      `Đã nạp ${uniqueNumbers.length} số`;
   };
   reader.readAsText(file);
 });
 
+// tạo tất cả pattern a/b độ dài n
+function generateAB(n){
+  let result = [];
+  let total = Math.pow(2, n);
+
+  for(let i = 0; i < total; i++){
+    let bin = i.toString(2).padStart(n, '0');
+    let str = bin.replace(/0/g, 'a').replace(/1/g, 'b');
+    result.push(str);
+  }
+
+  return result;
+}
+
+// kiểm tra ≥2 vị trí trùng
+function isValid(p, arr){
+  return arr.every(target => {
+    let match = 0;
+
+    for(let i = 0; i < 6; i++){
+      if(p[i] === target[i]) match++;
+    }
+
+    return match >= 2;
+  });
+}
+
 function processFile() {
   const keyword = document.getElementById("filterInput").value;
   const output = document.getElementById("output");
+  const abBox = document.getElementById("abResult");
 
-  if (keyword.length === 0) {
-    alert("Vui lòng nhập số!");
+  if (!keyword) {
+    alert("Nhập số đi 😑");
     return;
   }
 
   let htmlResult = "";
   let textResult = "";
   let count = 0;
+  let patterns = [];
 
   uniqueNumbers.forEach(num => {
     if (num.includes(keyword)) {
-      // Tìm vị trí đầu tiên của keyword
       const index = num.indexOf(keyword);
-      // Lấy phần phía sau keyword
       const after = num.substring(index + keyword.length);
-      
+
       if (after.length > 0) {
-        // Căn lề: Dùng padEnd để dãy số gốc luôn dài 12 ký tự, tạo cột thẳng
         const padding = num.padEnd(12, " ");
-        
         htmlResult += padding + `➔ <span class="next-numbers">${after}</span>\n`;
         textResult += padding + `-> ${after}\n`;
         count++;
       }
+
+      // xử lý AB
+      if (after.length >= 6) {
+        const first6 = after.slice(0,6);
+        const ab = first6.split('').map(x => x < 5 ? 'a' : 'b').join('');
+        patterns.push(ab);
+      }
     }
   });
-  
-  
-  
-  // ====== XỬ LÝ AB ======
-let patterns = [];
 
-uniqueNumbers.forEach(num => {
-  if (num.includes(keyword)) {
-    const index = num.indexOf(keyword);
-    const after = num.substring(index + keyword.length);
+  patterns = [...new Set(patterns)];
 
-    if (after.length >= 4) {
-      const first4 = after.slice(0,4);
-      const ab = first4.split('').map(x => x < 5 ? 'a' : 'b').join('');
-      patterns.push(ab);
-    }
+  if(patterns.length === 0){
+    abBox.innerText = "Không có dữ liệu để phân tích";
+  } else {
+    const allAB = generateAB(6);
+    const found = allAB.filter(p => isValid(p, patterns));
+
+    abBox.innerText = found.length
+      ? "Pattern hợp lệ:\n" + found.join("  ")
+      : "Không có pattern phù hợp 😢";
   }
-});
-
-// loại trùng
-patterns = [...new Set(patterns)];
-
-// tất cả khả năng
-const allAB = [
-  "aaaa","aaab","aaba","aabb",
-  "abaa","abab","abba","abbb",
-  "baaa","baab","baba","babb",
-  "bbaa","bbab","bbba","bbbb"
-];
-
-// check điều kiện “đụng hết”
-function isValid(p, arr){
-  return arr.every(target => {
-    for(let i=0;i<4;i++){
-      if(p[i] === target[i]) return true;
-    }
-    return false;
-  });
-}
-
-let found = allAB.filter(p => isValid(p, patterns));
-
-// hiển thị
-let abBox = document.getElementById("abResult");
-if (abBox) {
-  abBox.innerText = found.length
-    ? "Pattern hợp lệ:\n" + found.join("  ")
-    : "Không có pattern phù hợp";
-}
-
 
   finalText = textResult.trim();
-  output.innerHTML = htmlResult || "Không tìm thấy số nào có phần phía sau.";
-  document.getElementById("status").innerText = `Tìm thấy ${count} kết quả cho "${keyword}"`;
+  output.innerHTML = htmlResult || "Không tìm thấy";
+  document.getElementById("status").innerText =
+    `Tìm thấy ${count} kết quả`;
 }
 
-
-function toAB(str){
-  return str.split('').map(x => x < 5 ? 'a' : 'b').join('');
-}
-
-
-
+// copy
 function copyResult() {
   if (!finalText) return;
-  navigator.clipboard.writeText(finalText).then(() => alert("Đã copy!"));
+  navigator.clipboard.writeText(finalText);
 }
 
+// tải file
 function downloadFile() {
   if (!finalText) return;
   const blob = new Blob([finalText], { type: "text/plain" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = "ketqua_tach_so.txt";
+  a.download = "ketqua.txt";
   a.click();
 }
 </script>
