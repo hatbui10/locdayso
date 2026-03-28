@@ -2,100 +2,133 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Phân Tích Số Theo Khối (0-9) - 3 Logic</title>
+    <title>Phân Tích Số Theo Khối - Ultra Dark Mode</title>
     <style>
         body { 
-    font-family: 'Segoe UI', sans-serif; 
-    max-width: 1100px; 
-    margin: 0 auto; /* Đổi thành 0 để gradient phủ kín màn hình nếu cần */
-    padding: 20px; 
-    
-    /* Hiệu ứng Gradient mượt mà */
-    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); 
-    background-attachment: fixed; /* Giữ nền cố định khi cuộn trang */
-    min-height: 100vh; /* Đảm bảo nền luôn cao bằng màn hình */
-    color: #fff; /* Chữ mặc định màu trắng để nổi bật trên nền tối */
-}
+            font-family: 'Segoe UI', sans-serif; 
+            max-width: 1100px; 
+            margin: 0 auto; 
+            padding: 20px; 
+            /* Nền Gradient Đen Sâu */
+            background: linear-gradient(135deg, #000000 0%, #1a1a1d 50%, #0b0b0b 100%); 
+            background-attachment: fixed; 
+            min-height: 100vh; 
+            color: #c5c6c7; 
+        }
 
-.box { 
-    background: white; 
-    padding: 25px; 
-    border-radius: 12px; 
-    box-shadow: 0 10px 30px rgba(0,0,0,0.2); /* Đổ bóng đậm hơn một chút cho nổi bật */
-    color: #333; /* Giữ chữ trong hộp màu tối để dễ đọc */
-    margin-top: 20px;
-}
+        .box { 
+            background: #111111; /* Đen nhám */
+            padding: 25px; 
+            border-radius: 12px; 
+            box-shadow: 0 10px 40px rgba(0,0,0,0.8); 
+            color: #c5c6c7; 
+            margin-top: 20px;
+            border: 1px solid #222;
+        }
 
+        h2 { color: #66fcf1; text-align: center; text-transform: uppercase; letter-spacing: 2px; }
+
+        .input-group { margin-bottom: 20px; border-bottom: 1px solid #222; padding-bottom: 15px; }
         
+        label { display: block; font-weight: bold; margin-bottom: 10px; color: #45a29e; }
         
-        
-        .input-group { margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 15px; }
-        label { display: block; font-weight: bold; margin-bottom: 10px; color: #333; }
-        input[type="file"] { width: 100%; padding: 10px; border: 1px dashed #bbb; border-radius: 6px; cursor: pointer; }
+        input[type="file"] { 
+            width: 100%; padding: 12px; 
+            border: 1px dashed #333; 
+            border-radius: 6px; 
+            background: #0b0b0b; 
+            color: #66fcf1;
+            cursor: pointer;
+        }
+
         .btn-group { display: flex; gap: 10px; margin-bottom: 20px; }
         button { flex: 1; padding: 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.3s; }
-        .btn-run { background: #007bff; color: white; }
+        
+        .btn-run { background: #1f2833; color: #66fcf1; border: 1px solid #66fcf1; }
+        .btn-run:hover { background: #66fcf1; color: #0b0b0b; }
+        
         .btn-down { background: #28a745; color: white; display: none; }
         
+        /* Bảng hiển thị kết quả - Chế độ tập trung cao */
         #output { 
             margin-top: 20px; 
-            background: #ffffff; 
+            background: #050505; 
             padding: 20px; 
             border-radius: 8px; 
             max-height: 800px; 
             overflow-y: auto;
-            border: 2px solid #333;
-            line-height: 1.1; 
+            border: 1px solid #333;
+            line-height: 1.2; 
             font-family: 'Courier New', monospace;
             font-size: 20px; 
             letter-spacing: 2px;
+            color: #00ff41; 
         }
+
         .block-header { 
-            background: #34495e; color: white; padding: 10px; 
-            margin: 30px 0 10px 0; border-radius: 4px; font-size: 24px; font-weight: bold;
+            background: #1a1a1a; 
+            color: #45a29e; 
+            padding: 12px; 
+            margin: 35px 0 12px 0; 
+            border-radius: 4px; 
+            font-size: 22px; 
+            font-weight: bold;
+            border-left: 4px solid #45a29e;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
         }
-        .line { white-space: nowrap; margin-bottom: 2px; }
-        .target-digit { color: #000; font-weight: bold; background: #eee; padding: 0 3px; }
+
+        .line { white-space: nowrap; margin-bottom: 4px; border-bottom: 1px solid #111; }
         
-        /* Màu nền logic cụm Q */
-        .q-bg-red { background-color: #ff4d4d !important; color: white !important; }
-        .q-bg-blue { background-color: #00a8ff !important; color: white !important; }
-        .q-bg-yellow { background-color: #ffff00 !important; color: black !important; }
+        .target-digit { color: #0b0b0b; font-weight: bold; background: #c5c6c7; padding: 0 6px; border-radius: 2px; margin-right: 5px; }
         
-        .status { color: #007bff; font-weight: bold; margin-top: 10px; }
-        .legend { font-size: 14px; background: #fff8e1; padding: 10px; border: 1px solid #ffe082; border-radius: 6px; margin-bottom: 15px; line-height: 1.6; }
+        /* Logic màu sắc giữ nguyên để nhận diện nhưng chỉnh lại sắc độ tối */
+        .q-bg-red { background-color: white !important; color: #ffffff !important; } /* Đỏ đô tối */
+        .q-bg-blue { background-color: #002b5c !important; color: #ffffff !important; } /* Xanh biển cực tối */
+        .q-bg-yellow { background-color: #b8860b !important; color: #000000 !important; font-weight: bold; } /* Vàng đồng tối */
+        
+        .status { color: #66fcf1; font-weight: bold; margin-top: 10px; font-size: 0.9em; }
+
+        .legend { 
+            font-size: 13px; 
+            background: #0b0b0b; 
+            padding: 12px; 
+            border: 1px solid #222; 
+            border-radius: 6px; 
+            margin-bottom: 15px; 
+            color: #888;
+        }
     </style>
 </head>
 <body>
 
 <div class="box">
-    <h2>Hệ Thống Phân Tích Dãy Số Toàn Diện (Khối 0-9)</h2>
+    <h2>Phân Tích Khối 0-9 (Dark Edition)</h2>
     <div class="legend">
-        <strong>Quy tắc hiển thị:</strong><br>
-        - <span style="background:#ff4d4d; color:white; padding:1px 4px">Nền Đỏ</span>: 6 số Q đều ≥ 5. | 
-        - <span style="background:#00a8ff; color:white; padding:1px 4px">Nền Xanh</span>: 6 số Q đều < 5.<br>
-        - <span style="background:#ffff00; padding:1px 4px">Nền Vàng</span>: 6 số Q đối nghịch 100% với dòng kề bên (ưu tiên cao nhất).
+        <strong>Chế độ hiển thị tối ưu:</strong><br>
+        - <span style="background:#8b0000; color:white; padding:1px 4px">Đỏ Đô</span>: Cụm Q ≥ 5 | 
+        - <span style="background:#002b5c; color:white; padding:1px 4px">Xanh Than</span>: Cụm Q < 5<br>
+        - <span style="background:#b8860b; color:black; padding:1px 4px">Vàng Đồng</span>: Đối nghịch 100% dòng kề.
     </div>
     
     <div class="input-group">
-        <label>Tải lên tệp dữ liệu số (.txt):</label>
+        <label>Dữ liệu đầu vào (.txt):</label>
         <input type="file" id="fileInput" accept=".txt">
         <div id="fileStatus" class="status"></div>
     </div>
 
     <div class="btn-group">
-        <button class="btn-run" onclick="processData()">PHÂN TÍCH TOÀN BỘ KHỐI</button>
-        <button id="downBtn" class="btn-down" onclick="downloadTxt()">TẢI KẾT QUẢ (.TXT)</button>
+        <button class="btn-run" onclick="processData()">XỬ LÝ DỮ LIỆU</button>
+        <button id="downBtn" class="btn-down" onclick="downloadTxt()">XUẤT FILE (.TXT)</button>
     </div>
 
-    <div id="output">Kết quả sẽ tự động chia thành các khối từ 0 đến 9...</div>
+    <div id="output">Sẵn sàng...</div>
 </div>
 
 <script>
+    // GIỮ NGUYÊN TOÀN BỘ LOGIC JAVASCRIPT CỦA BẠN
     let finalRawText = "";
     const KEY = 'block_analysis_v8';
 
-    // Logic đối nghịch
     function isFullOpp(lA, lB) {
         if (!lA || !lB) return false;
         for (let p = 1; p <= 6; p++) {
@@ -128,13 +161,11 @@
         finalRawText = "";
         let totalLines = 0;
 
-        // Lặp qua từng khối từ 0 đến 9
         for (let digit = 0; digit <= 9; digit++) {
             let target = digit.toString();
             let lines = [];
             let i = 0;
 
-            // Tách dòng cho khối hiện tại
             while (i < data.length) {
                 let start = data.indexOf(target, i);
                 if (start === -1) break;
@@ -151,8 +182,6 @@
 
             if (lines.length > 0) {
                 totalLines += lines.length;
-                
-                // Tiêu đề khối
                 const header = document.createElement('div');
                 header.className = 'block-header';
                 header.textContent = `KHỐI SỐ: ${target}`;
@@ -160,7 +189,6 @@
 
                 finalRawText += `--- KHỐI SỐ: ${target} ---\n` + lines.join('\n') + "\n\n";
 
-                // Xử lý từng dòng trong khối
                 for (let n = 0; n < lines.length; n++) {
                     const cur = lines[n];
                     const qSeq = cur.substring(1, 7);
@@ -185,9 +213,8 @@
                 }
             }
         }
-
         document.getElementById('downBtn').style.display = totalLines ? "block" : "none";
-        document.getElementById('fileStatus').textContent = `Hoàn tất! Tổng cộng ${totalLines} dòng trong 10 khối.`;
+        document.getElementById('fileStatus').textContent = `Hoàn tất xử lý ${totalLines} dòng.`;
     }
 
     function downloadTxt() {
@@ -199,7 +226,7 @@
     }
 
     window.onload = () => {
-        if (localStorage.getItem(KEY)) document.getElementById('fileStatus').textContent = "Đã nhận dữ liệu từ bộ nhớ.";
+        if (localStorage.getItem(KEY)) document.getElementById('fileStatus').textContent = "Dữ liệu cũ đã sẵn sàng.";
     };
 </script>
 
