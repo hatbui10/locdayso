@@ -2,137 +2,138 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Quét Số Thông Minh - Lưu Trữ Nội Bộ</title>
+    <title>Trình Quét Số Chuyên Nghiệp</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; max-width: 800px; margin: 30px auto; padding: 20px; background: #f0f2f5; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; max-width: 800px; margin: 20px auto; padding: 20px; background: #f4f7f6; }
         .box { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        .input-group { margin-bottom: 20px; }
-        label { display: block; font-weight: bold; margin-bottom: 8px; }
-        input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
-        .btn-group { display: flex; gap: 10px; margin-top: 15px; }
-        button { flex: 1; padding: 12px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .input-group { margin-bottom: 15px; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; color: #333; }
+        input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
+        .btn-group { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+        button { flex: 1; min-width: 120px; padding: 12px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.3s; }
         .btn-run { background: #007bff; color: white; }
-        .btn-down { background: #28a745; color: white; display: none; }
+        .btn-down { background: #28a745; color: white; display: none; } /* Ẩn mặc định */
+        .btn-clear { background: #6c757d; color: white; }
         #output { 
             margin-top: 20px; 
             white-space: pre-wrap; 
-            background: #1e1e1e; 
-            color: #dcdcdc; 
+            background: #2d3436; 
+            color: #fab1a0; 
             padding: 20px; 
             border-radius: 6px; 
             height: 400px; 
             overflow-y: auto;
-            line-height: 2.5; /* Độ thưa dòng lớn theo yêu cầu */
+            line-height: 2.8; /* Khoảng cách thưa 2 dòng */
+            font-family: 'Courier New', monospace;
+            border: 2px solid #000;
         }
-        .status-file { font-size: 0.85em; margin-top: 5px; color: #007bff; font-style: italic; }
+        .status { font-size: 0.9em; padding: 8px; border-radius: 4px; margin-top: 5px; background: #e8f0fe; color: #1967d2; }
     </style>
 </head>
 <body>
 
 <div class="box">
-    <h2>Trình Quét & Lưu Trữ Dữ Liệu</h2>
+    <h2>Trình Quét & Tách Dãy Số</h2>
     
     <div class="input-group">
-        <label>1. Chọn tệp dữ liệu mới (Nếu muốn thay đổi):</label>
+        <label>1. Chọn tệp số của bạn (.txt):</label>
         <input type="file" id="fileInput" accept=".txt">
-        <div id="fileStatus" class="status-file">Chưa có dữ liệu trong bộ nhớ.</div>
+        <div id="fileStatus" class="status">Chưa có dữ liệu.</div>
     </div>
 
     <div class="input-group">
-        <label>2. Nhập số cần tìm (0-9):</label>
+        <label>2. Nhập số bắt đầu (0-9):</label>
         <input type="number" id="targetNum" min="0" max="9" value="0">
     </div>
 
     <div class="btn-group">
-        <button class="btn-run" onclick="handleProcess()">Bắt đầu quét</button>
-        <button id="downBtn" class="btn-down" onclick="downloadTxt()">Tải tệp kết quả</button>
+        <button class="btn-run" onclick="processData()">BẮT ĐẦU QUÉT</button>
+        <button id="downBtn" class="btn-down" onclick="downloadTxt()">TẢI VỀ FILE (.TXT)</button>
+        <button class="btn-clear" onclick="clearStorage()">XÓA BỘ NHỚ</button>
     </div>
 
-    <div id="output">Kết quả sẽ hiển thị ở đây...</div>
+    <div id="output">Kết quả sẽ hiển thị tại đây...</div>
 </div>
 
 <script>
-    let finalResult = "";
-    const STORAGE_KEY = 'stored_numeric_data';
-    const fileStatus = document.getElementById('fileStatus');
+    let finalOutput = "";
+    const KEY = 'user_data_numbers';
 
-    // Kiểm tra xem đã có dữ liệu cũ trong máy chưa khi vừa mở trang
-    window.onload = function() {
-        const savedData = localStorage.getItem(STORAGE_KEY);
-        if (savedData) {
-            fileStatus.textContent = "Đã tìm thấy dữ liệu cũ trong bộ nhớ (Dung lượng: " + (savedData.length / 1024).toFixed(2) + " KB). Bạn có thể quét ngay.";
-            fileStatus.style.color = "#28a745";
+    // Tự động load dữ liệu cũ khi mở trang
+    window.onload = () => {
+        const saved = localStorage.getItem(KEY);
+        if (saved) {
+            document.getElementById('fileStatus').textContent = "Đã nhận diện dữ liệu cũ (" + saved.length + " ký tự). Bấm Quét để chạy.";
         }
     };
 
-    function handleProcess() {
+    function clearStorage() {
+        localStorage.removeItem(KEY);
+        location.reload();
+    }
+
+    function processData() {
         const fileInput = document.getElementById('fileInput');
-        
-        // Nếu người dùng chọn file mới
+        const output = document.getElementById('output');
+
         if (fileInput.files[0]) {
             const reader = new FileReader();
-            reader.onload = function(e) {
-                const content = e.target.result.replace(/\s+/g, '');
-                try {
-                    localStorage.setItem(STORAGE_KEY, content);
-                    fileStatus.textContent = "Đã lưu dữ liệu mới vào bộ nhớ.";
-                    fileStatus.style.color = "#28a745";
-                    executeScan(content);
-                } catch (error) {
-                    alert("Tệp quá lớn để lưu vào bộ nhớ trình duyệt! Vẫn sẽ xử lý nhưng lần sau bạn cần tải lại tệp.");
-                    executeScan(content);
-                }
+            reader.onload = (e) => {
+                const content = e.target.result.replace(/[^0-9]/g, ''); // Chỉ lấy số
+                localStorage.setItem(KEY, content);
+                runFilter(content);
             };
             reader.readAsText(fileInput.files[0]);
         } else {
-            // Nếu không chọn file mới, dùng dữ liệu cũ trong localStorage
-            const savedData = localStorage.getItem(STORAGE_KEY);
-            if (savedData) {
-                executeScan(savedData);
-            } else {
-                alert("Vui lòng chọn tệp ít nhất một lần!");
-            }
+            const saved = localStorage.getItem(KEY);
+            if (saved) runFilter(saved);
+            else alert("Vui lòng chọn file trước!");
         }
     }
 
-    function executeScan(data) {
-        const target = document.getElementById('targetNum').value;
-        const output = document.getElementById('output');
+    function runFilter(data) {
+        const target = document.getElementById('targetNum').value.toString();
         const downBtn = document.getElementById('downBtn');
+        let results = [];
+        let i = 0;
 
-        let resultArr = [];
-        let currentIndex = 0;
+        while (i < data.length) {
+            // Tìm số mục tiêu
+            let start = data.indexOf(target, i);
+            if (start === -1) break;
 
-        while (currentIndex < data.length) {
-            let foundIndex = data.indexOf(target, currentIndex);
-            if (foundIndex === -1) break;
+            // Tìm số mục tiêu kế tiếp, bắt đầu từ vị trí cách ít nhất 7 số (số hiện tại + 6 số tiếp theo)
+            let nextPos = data.indexOf(target, start + 7);
 
-            let nextSearchStart = foundIndex + 7; // Nhảy qua 1 số gốc + 6 số đệm
-            let nextTargetIndex = data.indexOf(target, nextSearchStart);
-
-            if (nextTargetIndex !== -1) {
-                resultArr.push(data.substring(foundIndex, nextTargetIndex));
-                currentIndex = nextTargetIndex;
+            if (nextPos !== -1) {
+                results.push(data.substring(start, nextPos));
+                i = nextPos; // Nhảy đến số vừa tìm được để tiếp tục vòng lặp
             } else {
-                resultArr.push(data.substring(foundIndex));
+                // Nếu không còn số mục tiêu nào sau đó, lấy phần còn lại (nếu đủ dài)
+                let lastChunk = data.substring(start);
+                if (lastChunk.length >= 7) results.push(lastChunk);
                 break;
             }
         }
 
-        // Tạo khoảng cách xuống dòng thưa (3 lần xuống dòng để tạo khoảng trắng rộng)
-        finalResult = resultArr.join('\n\n\n'); 
-        output.textContent = finalResult || "Không tìm thấy dãy phù hợp.";
-        downBtn.style.display = finalResult ? "block" : "none";
+        if (results.length > 0) {
+            finalOutput = results.join('\n\n\n'); // Xuống dòng thưa
+            document.getElementById('output').textContent = finalOutput;
+            downBtn.style.display = "inline-block";
+            document.getElementById('fileStatus').textContent = "Tìm thấy " + results.length + " dãy thỏa mãn.";
+        } else {
+            document.getElementById('output').textContent = "Không tìm thấy dãy nào bắt đầu bằng '" + target + "' và có độ dài phía sau ít nhất 6 số.";
+            downBtn.style.display = "none";
+        }
     }
 
     function downloadTxt() {
-        const blob = new Blob([finalResult], { type: 'text/plain' });
+        const blob = new Blob([finalOutput], { type: 'text/plain' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = "ket_qua_quet.txt";
+        a.download = "ket_qua_loc_so.txt";
         a.click();
-        URL.revokeObjectURL(url);
     }
 </script>
 
