@@ -2,14 +2,14 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Quét Số & Cắt Dãy Thông Minh</title>
+    <title>Quét Số Thông Minh - Lưu Trữ Nội Bộ</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; max-width: 800px; margin: 30px auto; padding: 20px; background: #f0f2f5; }
         .box { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         .input-group { margin-bottom: 20px; }
         label { display: block; font-weight: bold; margin-bottom: 8px; }
         input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
-        .btn-group { display: flex; gap: 10px; }
+        .btn-group { display: flex; gap: 10px; margin-top: 15px; }
         button { flex: 1; padding: 12px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.3s; }
         .btn-run { background: #007bff; color: white; }
         .btn-down { background: #28a745; color: white; display: none; }
@@ -22,87 +22,107 @@
             border-radius: 6px; 
             height: 400px; 
             overflow-y: auto;
-            line-height: 1.8; /* Tạo độ thưa cho dòng */
+            line-height: 2.5; /* Độ thưa dòng lớn theo yêu cầu */
         }
-        .info { color: #666; font-size: 0.9em; margin-top: 5px; }
+        .status-file { font-size: 0.85em; margin-top: 5px; color: #007bff; font-style: italic; }
     </style>
 </head>
 <body>
 
 <div class="box">
-    <h2>Trình Quét & Tách Dãy Số</h2>
+    <h2>Trình Quét & Lưu Trữ Dữ Liệu</h2>
     
     <div class="input-group">
-        <label>1. Chọn tệp dữ liệu số (.txt):</label>
+        <label>1. Chọn tệp dữ liệu mới (Nếu muốn thay đổi):</label>
         <input type="file" id="fileInput" accept=".txt">
+        <div id="fileStatus" class="status-file">Chưa có dữ liệu trong bộ nhớ.</div>
     </div>
 
     <div class="input-group">
         <label>2. Nhập số cần tìm (0-9):</label>
         <input type="number" id="targetNum" min="0" max="9" value="0">
-        <p class="info">* Sau khi tìm thấy số này, hệ thống sẽ lấy ít nhất 6 ký tự tiếp theo rồi mới cắt dòng.</p>
     </div>
 
     <div class="btn-group">
-        <button class="btn-run" onclick="scanNumbers()">Bắt đầu quét</button>
+        <button class="btn-run" onclick="handleProcess()">Bắt đầu quét</button>
         <button id="downBtn" class="btn-down" onclick="downloadTxt()">Tải tệp kết quả</button>
     </div>
 
-    <div id="output">Kết quả hiển thị tại đây...</div>
+    <div id="output">Kết quả sẽ hiển thị ở đây...</div>
 </div>
 
 <script>
     let finalResult = "";
+    const STORAGE_KEY = 'stored_numeric_data';
+    const fileStatus = document.getElementById('fileStatus');
 
-    function scanNumbers() {
+    // Kiểm tra xem đã có dữ liệu cũ trong máy chưa khi vừa mở trang
+    window.onload = function() {
+        const savedData = localStorage.getItem(STORAGE_KEY);
+        if (savedData) {
+            fileStatus.textContent = "Đã tìm thấy dữ liệu cũ trong bộ nhớ (Dung lượng: " + (savedData.length / 1024).toFixed(2) + " KB). Bạn có thể quét ngay.";
+            fileStatus.style.color = "#28a745";
+        }
+    };
+
+    function handleProcess() {
         const fileInput = document.getElementById('fileInput');
+        
+        // Nếu người dùng chọn file mới
+        if (fileInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const content = e.target.result.replace(/\s+/g, '');
+                try {
+                    localStorage.setItem(STORAGE_KEY, content);
+                    fileStatus.textContent = "Đã lưu dữ liệu mới vào bộ nhớ.";
+                    fileStatus.style.color = "#28a745";
+                    executeScan(content);
+                } catch (error) {
+                    alert("Tệp quá lớn để lưu vào bộ nhớ trình duyệt! Vẫn sẽ xử lý nhưng lần sau bạn cần tải lại tệp.");
+                    executeScan(content);
+                }
+            };
+            reader.readAsText(fileInput.files[0]);
+        } else {
+            // Nếu không chọn file mới, dùng dữ liệu cũ trong localStorage
+            const savedData = localStorage.getItem(STORAGE_KEY);
+            if (savedData) {
+                executeScan(savedData);
+            } else {
+                alert("Vui lòng chọn tệp ít nhất một lần!");
+            }
+        }
+    }
+
+    function executeScan(data) {
         const target = document.getElementById('targetNum').value;
         const output = document.getElementById('output');
         const downBtn = document.getElementById('downBtn');
 
-        if (!fileInput.files[0]) {
-            alert("Vui lòng chọn tệp!");
-            return;
+        let resultArr = [];
+        let currentIndex = 0;
+
+        while (currentIndex < data.length) {
+            let foundIndex = data.indexOf(target, currentIndex);
+            if (foundIndex === -1) break;
+
+            let nextSearchStart = foundIndex + 7; // Nhảy qua 1 số gốc + 6 số đệm
+            let nextTargetIndex = data.indexOf(target, nextSearchStart);
+
+            if (nextTargetIndex !== -1) {
+                resultArr.push(data.substring(foundIndex, nextTargetIndex));
+                currentIndex = nextTargetIndex;
+            } else {
+                resultArr.push(data.substring(foundIndex));
+                break;
+            }
         }
 
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            // Loại bỏ tất cả khoảng trắng, xuống dòng để có 1 dãy số thuần túy
-            const rawText = e.target.result.replace(/\s+/g, '');
-            let resultArr = [];
-            let currentIndex = 0;
-
-            while (currentIndex < rawText.length) {
-                // Tìm vị trí của số mục tiêu tiếp theo kể từ vị trí hiện tại
-                let foundIndex = rawText.indexOf(target, currentIndex);
-
-                if (foundIndex === -1) break; // Không tìm thấy nữa thì dừng
-
-                // Kiểm tra xem phần còn lại có đủ ít nhất 1 số mục tiêu + 6 số phía sau không
-                // Độ dài tối thiểu cần lấy là 7 (số đó + 6 số sau)
-                let endOfSegment = foundIndex + 7;
-                
-                // Tìm số mục tiêu kế tiếp NHƯNG phải sau ít nhất 6 ký tự
-                let nextSearchStart = foundIndex + 7;
-                let nextTargetIndex = rawText.indexOf(target, nextSearchStart);
-
-                if (nextTargetIndex !== -1) {
-                    // Nếu tìm thấy số tiếp theo, cắt đến tận vị trí đó
-                    resultArr.push(rawText.substring(foundIndex, nextTargetIndex));
-                    currentIndex = nextTargetIndex;
-                } else {
-                    // Nếu không còn số nào nữa, lấy hết phần còn lại
-                    resultArr.push(rawText.substring(foundIndex));
-                    break;
-                }
-            }
-
-            // Ghi kết quả với 2 lần xuống dòng (\n\n) để tạo khoảng cách thưa
-            finalResult = resultArr.join('\n\'); 
-            output.textContent = finalResult || "Không tìm thấy dãy thỏa mãn điều kiện.";
-            downBtn.style.display = finalResult ? "block" : "none";
-        };
-        reader.readAsText(fileInput.files[0]);
+        // Tạo khoảng cách xuống dòng thưa (3 lần xuống dòng để tạo khoảng trắng rộng)
+        finalResult = resultArr.join('\n\n\n'); 
+        output.textContent = finalResult || "Không tìm thấy dãy phù hợp.";
+        downBtn.style.display = finalResult ? "block" : "none";
     }
 
     function downloadTxt() {
@@ -110,7 +130,7 @@
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = "ket_qua_quet_so.txt";
+        a.download = "ket_qua_quet.txt";
         a.click();
         URL.revokeObjectURL(url);
     }
