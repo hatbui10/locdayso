@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Sequence Analyzer Pro - Sharp Edition</title>
+    <title>Sequence Analyzer Pro - Fixed</title>
     <style>
         :root {
             --bg-body: #0f0f0f;
@@ -17,70 +17,94 @@
         body { font-family: 'Consolas', monospace; padding: 20px; background: var(--bg-body); color: var(--text-main); }
         .container { max-width: 1100px; margin: auto; background: var(--bg-container); padding: 25px; border-radius: 12px; border: 1px solid #333; }
         
-        h2 { text-align: center; color: var(--primary); text-transform: uppercase; letter-spacing: 2px; }
+        h2 { text-align: center; color: var(--primary); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 30px; }
 
-        .controls { background: var(--surface); padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #383838; }
-        .btn-group { display: flex; gap: 10px; margin-top: 15px; }
+        .controls { background: var(--surface); padding: 20px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #383838; }
+        
+        /* FIX LỖI NÚT Ở ĐÂY */
+        .btn-group { 
+            display: flex; 
+            gap: 12px; 
+            margin-top: 15px; 
+            flex-wrap: wrap; /* Cho phép xuống dòng nếu màn hình nhỏ */
+            align-items: center;
+        }
 
-        button { padding: 10px 15px; cursor: pointer; border: none; border-radius: 4px; font-weight: bold; background: #444; color: #ccc; }
-        button.active { background: var(--primary); color: #000; box-shadow: 0 0 10px rgba(187,134,252,0.4); }
+        button { 
+            padding: 12px 20px; 
+            cursor: pointer; 
+            border: none; 
+            border-radius: 6px; 
+            font-weight: bold; 
+            background: #444; 
+            color: #ccc;
+            white-space: nowrap; /* Giữ chữ trên 1 hàng, không cho xuống dòng */
+            min-width: fit-content; /* Nút tự rộng ra theo chữ */
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+        }
+
+        button.active { 
+            background: var(--primary); 
+            color: #000; 
+            box-shadow: 0 0 15px rgba(187,134,252,0.5); 
+        }
+
         .export-btn { background: var(--secondary); color: #000; }
         .clear-btn { background: #555; color: white; }
+        button:hover { opacity: 0.9; transform: scale(1.02); }
 
         #result { 
             height: 500px; overflow-y: auto; border: 1px solid #333; padding: 20px; 
-            word-break: break-all; font-size: 1.4rem; line-height: 1.2; /* Line-height thấp để gạch chân sát số */
+            word-break: break-all; font-size: 1.4rem; line-height: 1.1; 
             background: #050505; border-radius: 8px;
         }
 
-        /* ĐỊNH DẠNG SỐ VÀ GẠCH CHÂN SÁT */
-        .num-item { 
-            display: inline-block; 
-            width: 20px; 
-            text-align: center; 
-            margin: 8px 2px; /* Khoảng cách giữa các dòng và các số */
-            color: #666; 
-        }
+        .num-item { display: inline-block; width: 22px; text-align: center; margin: 10px 2px; color: #666; }
         
+        /* Gạch chân sát số */
         .is-a { 
             color: var(--danger); 
             font-weight: bold; 
-            border-bottom: 3px solid var(--danger); /* Gạch chân sát số */
-            line-height: 1; 
+            border-bottom: 3px solid var(--danger); 
+            padding-bottom: 0px;
             display: inline-block;
+            line-height: 0.9;
         }
 
         .highlight { 
             background-color: #ffd700 !important; 
             color: #000 !important; 
-            border-radius: 2px; 
-            box-shadow: 0 0 5px #ffd700;
+            border-radius: 3px; 
+            box-shadow: 0 0 8px #ffd700;
         }
 
-        .stats { display: flex; gap: 10px; margin-bottom: 15px; }
-        .stat-box { flex: 1; background: var(--surface); padding: 10px; border-radius: 6px; text-align: center; border: 1px solid #333; }
-        .stat-box b { color: var(--secondary); font-size: 1.2rem; }
+        .stats { display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap; }
+        .stat-box { flex: 1; min-width: 150px; background: var(--surface); padding: 15px; border-radius: 8px; text-align: center; border: 1px solid #333; }
+        .stat-box b { color: var(--secondary); font-size: 1.3rem; display: block; margin-top: 5px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>Sequence Analyzer <span style="color: #666;">v3.0</span></h2>
+    <h2>Sequence Analyzer Pro</h2>
 
     <div class="controls">
-        <strong>📂 Chọn File:</strong> <input type="file" id="fileInput" accept=".txt" style="color:#888">
+        <strong>📂 Chọn File:</strong> 
+        <input type="file" id="fileInput" accept=".txt" style="color:#888; margin-left: 10px;">
+        
         <div class="btn-group">
-            <button id="mode1Btn" onclick="setMode(1)">TH 1: n+1>n & n+2<5</button>
-            <button id="mode2Btn" onclick="setMode(2)">TH 2: n+1<n & n+2>5</button>
+            <button id="mode1Btn" onclick="setMode(1)">TH 1: n+1 > n & n+2 < 5</button>
+            <button id="mode2Btn" onclick="setMode(2)">TH 2: n+1 < n & n+2 > 5</button>
             <button class="export-btn" onclick="exportResults()">💾 Xuất File</button>
             <button class="clear-btn" onclick="clearData()">Reset</button>
         </div>
     </div>
 
     <div class="stats">
-        <div class="stat-box">Tổng số: <b id="totalCount">0</b></div>
-        <div class="stat-box">Số loại (a): <b id="aCount">0</b></div>
-        <div class="stat-box">Cụm đạt chuẩn: <b id="groupCount">0</b></div>
+        <div class="stat-box">Tổng số chữ số<b id="totalCount">0</b></div>
+        <div class="stat-box">Số loại (a)<b id="aCount">0</b></div>
+        <div class="stat-box">Cụm đạt chuẩn (≥6)<b id="groupCount">0</b></div>
     </div>
 
     <div id="result"></div>
@@ -88,18 +112,18 @@
 
 <script>
     let currentMode = 1;
-    let rawData = localStorage.getItem('lastData') || "";
+    let rawData = localStorage.getItem('lastData_v2') || "";
 
     window.onload = () => {
-        const savedMode = localStorage.getItem('lastMode');
+        const savedMode = localStorage.getItem('lastMode_v2');
         if(savedMode) currentMode = parseInt(savedMode);
         updateButtons();
-        if(rawData) processData(rawData, false); // false để không hiện alert khi vừa mở trang
+        if(rawData) processData(rawData, false);
     };
 
     function setMode(mode) {
         currentMode = mode;
-        localStorage.setItem('lastMode', mode);
+        localStorage.setItem('lastMode_v2', mode);
         updateButtons();
         if(rawData) processData(rawData, true);
     }
@@ -115,7 +139,7 @@
         const reader = new FileReader();
         reader.onload = (e) => {
             rawData = e.target.result;
-            localStorage.setItem('lastData', rawData);
+            localStorage.setItem('lastData_v2', rawData);
             processData(rawData, true);
         };
         reader.readAsText(file);
@@ -147,10 +171,9 @@
         }
         if (temp.length >= 6) { temp.forEach(idx => highlightIndices.add(idx)); groupCount++; }
 
-        // Update UI
-        document.getElementById('totalCount').innerText = nums.length;
-        document.getElementById('aCount').innerText = aTotal;
-        document.getElementById('groupCount').innerText = groupCount;
+        document.getElementById('totalCount').innerText = nums.length.toLocaleString();
+        document.getElementById('aCount').innerText = aTotal.toLocaleString();
+        document.getElementById('groupCount').innerText = groupCount.toLocaleString();
 
         let html = '';
         for (let i = 0; i < nums.length; i++) {
@@ -161,29 +184,26 @@
         }
         document.getElementById('result').innerHTML = html;
 
-        // THÔNG BÁO
         if (showAlert) {
             setTimeout(() => {
-                if (groupCount > 0) {
-                    alert(`✅ Hoàn thành! Đã tìm thấy ${groupCount} cụm số hợp lệ (tô vàng).`);
-                } else {
-                    alert(`❌ Không tìm thấy dãy 6 số "a" liên tiếp nào trong dữ liệu này.`);
-                }
+                if (groupCount > 0) alert(`✅ Tìm thấy ${groupCount} cụm số hợp lệ!`);
+                else alert(`❌ Không tìm thấy cụm 6 số liên tiếp thỏa mãn.`);
             }, 100);
         }
     }
 
     function exportResults() {
         if (!rawData) return alert("Không có dữ liệu!");
-        const blob = new Blob([document.getElementById('result').innerText], {type: 'text/plain'});
+        const content = document.getElementById('result').innerText;
+        const blob = new Blob([content], {type: 'text/plain'});
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
-        a.download = `ket_qua_th${currentMode}.txt`;
+        a.download = `ket_qua_thong_ke.txt`;
         a.click();
     }
 
     function clearData() {
-        if(confirm("Xóa sạch dữ liệu?")) {
+        if(confirm("Xóa sạch dữ liệu đã lưu?")) {
             localStorage.clear();
             location.reload();
         }
