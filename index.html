@@ -212,15 +212,28 @@
         }
     }
 
-    function exportResults() {
+        function exportResults() {
         if (!rawData) return alert("Chưa có dữ liệu!");
+        
+        // 1. Lấy dữ liệu từ vùng kết quả
         const txt = document.getElementById('result').innerText;
+        
+        // 2. Tạo phần đuôi ngắn (4 số cuối của timestamp) để phân biệt các file
+        const shortID = Date.now().toString().slice(-4);
+        
+        // 3. Đặt tên file bắt đầu bằng 168 và kèm ID ngắn
+        const fileName = `168-${shortID}.txt`;
+
         const blob = new Blob([txt], {type: 'text/plain'});
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
-        a.download = `ket_qua_th${currentMode}.txt`;
+        a.download = fileName;
         a.click();
+        
+        // Dọn dẹp URL để tiết kiệm bộ nhớ
+        setTimeout(() => window.URL.revokeObjectURL(a.href), 1000);
     }
+
 
     function clearData() {
         if(confirm("Xóa toàn bộ dữ liệu lưu trữ?")) {
