@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sequence Analyzer Pro - Full Fixed</title>
+   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    
     <style>
         :root {
             --bg-body: #0a0a0a;
@@ -212,28 +214,43 @@
         }
     }
 
-        function exportResults() {
-        if (!rawData) return alert("Chưa có dữ liệu!");
-        
-        // 1. Lấy dữ liệu từ vùng kết quả
-        const txt = document.getElementById('result').innerText;
-        
-        // 2. Tạo phần đuôi ngắn (4 số cuối của timestamp) để phân biệt các file
+            async function exportResults() {
+        const resultArea = document.getElementById('result');
+        if (!rawData || resultArea.innerText.includes("Hãy tải file")) {
+            return alert("❌ Chưa có dữ liệu để xuất ảnh!");
+        }
+
+        const btnExport = document.querySelector('.export-btn');
         const shortID = Date.now().toString().slice(-4);
-        
-        // 3. Đặt tên file bắt đầu bằng 168 và kèm ID ngắn
-        const fileName = `168-${shortID}.txt`;
+        const fileName = `168-${shortID}.png`;
 
-        const blob = new Blob([txt], {type: 'text/plain'});
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = fileName;
-        a.click();
-        
-        // Dọn dẹp URL để tiết kiệm bộ nhớ
-        setTimeout(() => window.URL.revokeObjectURL(a.href), 1000);
+        // Thông báo trạng thái đang xử lý
+        btnExport.innerText = "⏳ Đang tạo ảnh...";
+        btnExport.style.opacity = "0.5";
+
+        try {
+            const canvas = await html2canvas(resultArea, {
+                backgroundColor: "#000000", // Ép nền đen nguyên xi
+                scale: 2,                  // Tăng độ nét cho ảnh
+                logging: false,
+                useCORS: true,
+                // Đảm bảo chụp hết nội dung bên trong vùng cuộn
+                height: resultArea.scrollHeight,
+                windowHeight: resultArea.scrollHeight
+            });
+
+            const link = document.createElement('a');
+            link.href = canvas.toDataURL("image/png");
+            link.download = fileName;
+            link.click();
+        } catch (err) {
+            console.error("Lỗi xuất ảnh:", err);
+            alert("Có lỗi khi tạo ảnh, vui lòng thử lại.");
+        } finally {
+            btnExport.innerText = "💾 Xuất Ảnh";
+            btnExport.style.opacity = "1";
+        }
     }
-
 
     function clearData() {
         if(confirm("Xóa toàn bộ dữ liệu lưu trữ?")) {
