@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sequence Pattern Analyzer v12.0 - Multi-File</title>
+    <title>Sequence Analyzer v13.0 - Stable Storage</title>
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <style>
         :root {
@@ -48,8 +48,7 @@
             line-height: 1.8; background: #050505; border-radius: 6px;
         }
 
-        .num-item { display: inline-block; width: 28px; text-align: center; color: #666; transition: 0.1s; }
-        
+        .num-item { display: inline-block; width: 28px; text-align: center; color: #666; }
         .highlight { background-color: #ffd700 !important; color: #000 !important; font-weight: bold; }
         .search-match { background-color: var(--accent) !important; color: #ffffff !important; text-decoration: underline; font-weight: bold; border-radius: 2px; }
 
@@ -61,22 +60,21 @@
 <body>
 
 <div class="container">
-    <h2>Pattern Analyzer <span style="font-size: 0.5em; color: #777;">v12.0 (Multi-File)</span></h2>
+    <h2>Pattern Analyzer <span style="font-size: 0.5em; color: #777;">v13.0 (Stable)</span></h2>
 
     <div class="controls">
         <div class="search-box">
             <strong>🔍 Tìm 2 số cụ thể:</strong>
             <input type="text" id="searchInput" placeholder="VD: 23" maxlength="2">
             <button class="search-btn" onclick="startSearch()">Tìm kiếm</button>
-            <span style="font-size: 0.8rem; color: #888;">(Tím + Gạch chân)</span>
         </div>
 
-        <strong>📂 Tải một hoặc nhiều file (.txt):</strong> 
+        <strong>📂 Tải file (.txt):</strong> 
         <input type="file" id="fileInput" accept=".txt" multiple style="display: block; margin-top: 10px; color: #888;">
         
         <div class="btn-group">
-            <button class="export-btn" onclick="exportResults()">💾 Xuất Ảnh Kết Quả</button>
-            <button class="clear-btn" onclick="clearData()">Xóa hết dữ liệu</button>
+            <button class="export-btn" onclick="exportResults()">💾 Xuất Ảnh</button>
+            <button class="clear-btn" onclick="clearData()">Xóa vĩnh viễn dữ liệu</button>
         </div>
     </div>
 
@@ -86,27 +84,42 @@
         <div class="stat-box">Kết quả tìm (Tím): <b id="searchCount">0</b></div>
     </div>
 
-    <div id="result">Vui lòng chọn file để bắt đầu...</div>
+    <div id="result">Đang kiểm tra dữ liệu cũ...</div>
 </div>
 
 <script>
-    let rawData = localStorage.getItem('storedMultiData') || "";
+    // CỐ ĐỊNH TÊN BIẾN ĐỂ KHÔNG MẤT DỮ LIỆU KHI UPDATE
+    const STORAGE_KEY = 'sequence_analyzer_data';
+    let rawData = "";
     let searchTarget = "";
 
-    window.onload = () => { if(rawData) processData(rawData); };
+    window.onload = () => {
+        // Cố gắng khôi phục dữ liệu từ tất cả các phiên bản trước đó (nếu có)
+        rawData = localStorage.getItem(STORAGE_KEY) || 
+                  localStorage.getItem('storedMultiData') || 
+                  localStorage.getItem('storedDataV11') || 
+                  localStorage.getItem('storedDataV10') || "";
+        
+        if(rawData) {
+            localStorage.setItem(STORAGE_KEY, rawData); // Đồng nhất về một biến
+            processData(rawData);
+        } else {
+            document.getElementById('result').innerText = "Vui lòng chọn file để bắt đầu.";
+        }
+    };
 
     document.getElementById('fileInput').addEventListener('change', async function(e) {
         const files = e.target.files;
         if (!files.length) return;
 
-        let combinedContent = "";
+        let combinedContent = rawData; // Giữ lại dữ liệu hiện tại và cộng thêm file mới
         for (let file of files) {
             const text = await file.text();
-            combinedContent += text + " "; // Nối nội dung các file
+            combinedContent += " " + text;
         }
 
         rawData = combinedContent;
-        localStorage.setItem('storedMultiData', rawData);
+        localStorage.setItem(STORAGE_KEY, rawData);
         processData(rawData);
     });
 
@@ -117,10 +130,7 @@
 
     function processData(content) {
         const nums = content.replace(/\D/g, '').split('').map(Number);
-        if (nums.length === 0) {
-            document.getElementById('result').innerText = "Không tìm thấy dữ liệu số.";
-            return;
-        }
+        if (nums.length === 0) return;
 
         const highlightIndices = new Set();
         const searchIndices = new Set();
@@ -130,16 +140,12 @@
         const isA = (n) => n >= 5; 
         const isB = (n) => n < 5; 
 
-        // 1. Logic tìm 4 mẫu pattern 9 số
         for (let i = 0; i <= nums.length - 9; i++) {
             let match = false;
-            // aab-bababa
+            // 4 Mẫu: aab-bababa, bab-ababab, aba-bababa, bba-ababab
             if (isA(nums[i]) && isA(nums[i+1]) && isB(nums[i+2]) && isB(nums[i+3]) && isA(nums[i+4]) && isB(nums[i+5]) && isA(nums[i+6]) && isB(nums[i+7]) && isA(nums[i+8])) match = true;
-            // bab-ababab
             else if (isB(nums[i]) && isA(nums[i+1]) && isB(nums[i+2]) && isA(nums[i+3]) && isB(nums[i+4]) && isA(nums[i+5]) && isB(nums[i+6]) && isA(nums[i+7]) && isB(nums[i+8])) match = true;
-            // aba-bababa
             else if (isA(nums[i]) && isB(nums[i+1]) && isA(nums[i+2]) && isB(nums[i+3]) && isA(nums[i+4]) && isB(nums[i+5]) && isA(nums[i+6]) && isB(nums[i+7]) && isA(nums[i+8])) match = true;
-            // bba-ababab
             else if (isB(nums[i]) && isB(nums[i+1]) && isA(nums[i+2]) && isA(nums[i+3]) && isB(nums[i+4]) && isA(nums[i+5]) && isB(nums[i+6]) && isA(nums[i+7]) && isB(nums[i+8])) match = true;
 
             if (match) {
@@ -149,20 +155,17 @@
             }
         }
 
-        // 2. Logic tìm 2 chữ số cụ thể
         if (searchTarget.length === 2) {
             const s1 = parseInt(searchTarget[0]);
             const s2 = parseInt(searchTarget[1]);
             for (let i = 0; i <= nums.length - 2; i++) {
                 if (nums[i] === s1 && nums[i+1] === s2) {
-                    searchIndices.add(i);
-                    searchIndices.add(i + 1);
+                    searchIndices.add(i); searchIndices.add(i + 1);
                     searchCount++;
                 }
             }
         }
 
-        // Cập nhật giao diện
         document.getElementById('totalCount').innerText = nums.length.toLocaleString();
         document.getElementById('groupCount').innerText = groupCount.toLocaleString();
         document.getElementById('searchCount').innerText = searchCount.toLocaleString();
@@ -181,21 +184,19 @@
         const resultArea = document.getElementById('result');
         try {
             const canvas = await html2canvas(resultArea, {
-                backgroundColor: "#050505",
-                scale: 2,
-                height: resultArea.scrollHeight,
+                backgroundColor: "#050505", scale: 2, height: resultArea.scrollHeight,
                 onclone: (clonedDoc) => { clonedDoc.getElementById('result').style.height = 'auto'; }
             });
             const link = document.createElement('a');
             link.href = canvas.toDataURL("image/png");
-            link.download = `MultiFile-Export-${Date.now()}.png`;
+            link.download = `Analyzer-Export-${Date.now()}.png`;
             link.click();
         } catch (err) { console.error(err); }
     }
 
     function clearData() {
-        if(confirm("Xóa toàn bộ dữ liệu đã lưu?")) {
-            localStorage.removeItem('storedMultiData');
+        if(confirm("Hành động này sẽ xóa toàn bộ lịch sử đã lưu. Bạn chắc chứ?")) {
+            localStorage.clear();
             location.reload();
         }
     }
