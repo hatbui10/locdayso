@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sequence Analyzer Pro - Logic A</title>
-   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-    
+    <title>Sequence Pattern Analyzer v12.0 - Multi-File</title>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <style>
         :root {
             --bg-body: #0a0a0a;
@@ -13,251 +12,190 @@
             --text-main: #e0e0e0;
             --primary: #bb86fc;
             --secondary: #03dac6;
-            --danger: #ff5252;
+            --accent: #6200ee;
             --surface: #222222;
         }
 
         body { font-family: 'Consolas', 'Monaco', monospace; padding: 15px; background: var(--bg-body); color: var(--text-main); margin: 0; }
-        .container { max-width: 1000px; margin: auto; background: var(--bg-container); padding: 20px; border-radius: 12px; border: 1px solid #333; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .container { max-width: 1100px; margin: auto; background: var(--bg-container); padding: 20px; border-radius: 12px; border: 1px solid #333; }
         
-        h2 { text-align: center; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; margin-top: 0; }
-
-        .view-toggle { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #333; }
-        .view-toggle button { background: #333; color: #888; padding: 8px 15px; font-size: 0.8rem; }
-        .view-toggle button.active-view { background: #444; color: white; border: 1px solid var(--primary); }
+        h2 { text-align: center; color: var(--primary); text-transform: uppercase; margin-top: 0; }
 
         .controls { background: var(--surface); padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #333; }
         
-        .btn-group { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; }
-        
-        .desktop-v .btn-group { flex-direction: row; }
-        .desktop-v .btn-group button { flex: 1; min-width: fit-content; }
+        .search-box { 
+            display: flex; gap: 10px; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #444;
+            align-items: center; flex-wrap: wrap;
+        }
+        .search-box input { 
+            background: #000; border: 1px solid #555; color: var(--secondary); 
+            padding: 8px; border-radius: 4px; width: 80px; text-align: center; font-size: 1rem;
+        }
+        .search-btn { background: var(--accent) !important; color: white !important; }
 
-        .mobile-v .btn-group { flex-direction: column; }
-        .mobile-v .btn-group button { width: 100%; padding: 15px; font-size: 1rem; }
+        .btn-group { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px; }
 
         button { 
             padding: 10px 15px; cursor: pointer; border: none; border-radius: 6px; 
-            font-weight: bold; background: #3d3d3d; color: #bbb; white-space: nowrap; transition: 0.2s;
+            font-weight: bold; background: #3d3d3d; color: #bbb; transition: 0.2s;
         }
-        /* Nút chọn cụm đang active sẽ có màu cam rực rỡ */
-        button.active { background: #ff9800; color: #000; box-shadow: 0 0 12px rgba(255,152,0,0.4); }
         .export-btn { background: var(--secondary); color: #000; }
         .clear-btn { background: #555; color: white; }
 
         #result { 
-    height: 450px; 
-    overflow-y: auto; 
-    border: 1px solid #222; 
-    padding: 15px 5px;    /* Giảm padding trái phải để tối ưu không gian */
-    word-break: keep-all; /* Không ngắt chữ giữa chừng */
-    font-size: 1.3rem; 
-    line-height: 1; 
-    background: #050505; 
-    border-radius: 6px;
-    display: flex;        /* Sử dụng flexbox để kiểm soát dòng tốt hơn */
-    flex-wrap: wrap;      /* Cho phép xuống dòng khi đủ 100% width */
-    align-content: flex-start;
-}
+            height: 500px; overflow-y: auto; border: 1px solid #222; 
+            padding: 15px; word-break: break-all; font-size: 1.2rem; 
+            line-height: 1.8; background: #050505; border-radius: 6px;
+        }
 
-
-        .num-item { display: inline-block; width: 10%; text-align: center; margin: 10px 0; color: #555; box-sizing: border-box; }
+        .num-item { display: inline-block; width: 28px; text-align: center; color: #666; transition: 0.1s; }
         
-        /* Số a: Gạch chân đỏ sát chân số */
-        .is-a { 
-            color: var(--danger); 
-            font-weight: bold; 
-            border-bottom: 3px solid var(--danger); 
-            display: inline-block;
-            line-height: 0.85;
-        }
+        .highlight { background-color: #ffd700 !important; color: #000 !important; font-weight: bold; }
+        .search-match { background-color: var(--accent) !important; color: #ffffff !important; text-decoration: underline; font-weight: bold; border-radius: 2px; }
 
-        /* Highlight cụm: Tô nền vàng rực */
-        .highlight { 
-            background-color: #ffd700 !important; 
-            color: #000 !important; 
-            border-radius: 2px; 
-            box-shadow: 0 0 5px #ffd700;
-        }
-
-        .stats { display: flex; gap: 10px; margin-bottom: 15px; }
-        .stat-box { flex: 1; background: var(--surface); padding: 10px; border-radius: 6px; text-align: center; border: 1px solid #333; }
-        .stat-box b { color: var(--secondary); font-size: 1.1rem; display: block; }
+        .stats { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
+        .stat-box { flex: 1; min-width: 150px; background: var(--surface); padding: 10px; border-radius: 6px; text-align: center; border: 1px solid #333; }
+        .stat-box b { color: var(--secondary); font-size: 1.2rem; display: block; }
     </style>
 </head>
-<body id="mainBody" class="desktop-v">
+<body>
 
 <div class="container">
-    <div class="view-toggle">
-        <button id="btnVDesktop" onclick="changeView('desktop-v')">💻 MÁY TÍNH</button>
-        <button id="btnVMobile" onclick="changeView('mobile-v')">📱 ĐIỆN THOẠI</button>
-    </div>
-
-    <h2>Sequence Analyzer <span style="font-size: 0.6em; color: #555;">v5.1</span></h2>
+    <h2>Pattern Analyzer <span style="font-size: 0.5em; color: #777;">v12.0 (Multi-File)</span></h2>
 
     <div class="controls">
-        <strong>📂 Chọn File:</strong> 
-        <input type="file" id="fileInput" accept=".txt" style="color: #888; margin-top: 5px; width: 100%;">
+        <div class="search-box">
+            <strong>🔍 Tìm 2 số cụ thể:</strong>
+            <input type="text" id="searchInput" placeholder="VD: 23" maxlength="2">
+            <button class="search-btn" onclick="startSearch()">Tìm kiếm</button>
+            <span style="font-size: 0.8rem; color: #888;">(Tím + Gạch chân)</span>
+        </div>
+
+        <strong>📂 Tải một hoặc nhiều file (.txt):</strong> 
+        <input type="file" id="fileInput" accept=".txt" multiple style="display: block; margin-top: 10px; color: #888;">
         
         <div class="btn-group">
-            <button id="size4Btn" onclick="setSize(4)">⚡ Tìm Cụm 4</button>
-            <button id="size5Btn" onclick="setSize(5)">💎 Tìm Cụm 5</button>
-            <button id="size6Btn" onclick="setSize(6)">🔥 Tìm Cụm 6</button>
-            <button class="export-btn" onclick="exportResults()">💾 Xuất Ảnh</button>
-            <button class="clear-btn" onclick="clearData()">Xóa hết</button>
+            <button class="export-btn" onclick="exportResults()">💾 Xuất Ảnh Kết Quả</button>
+            <button class="clear-btn" onclick="clearData()">Xóa hết dữ liệu</button>
         </div>
     </div>
 
     <div class="stats">
-        <div class="stat-box">Tổng số: <b id="totalCount">0</b></div>
-        <div class="stat-box">Số lượng (a): <b id="aCount">0</b></div>
-        <div class="stat-box">Cụm ≥ <span id="labelSize">?</span>: <b id="groupCount">0</b></div>
+        <div class="stat-box">Tổng chữ số: <b id="totalCount">0</b></div>
+        <div class="stat-box">Mẫu 9 số (Vàng): <b id="groupCount">0</b></div>
+        <div class="stat-box">Kết quả tìm (Tím): <b id="searchCount">0</b></div>
     </div>
 
-    <div id="result">Hãy tải file .txt để tìm số (a)...</div>
+    <div id="result">Vui lòng chọn file để bắt đầu...</div>
 </div>
 
 <script>
-    let minGroupSize = 6;
-    let rawData = localStorage.getItem('storedData') || "";
+    let rawData = localStorage.getItem('storedMultiData') || "";
+    let searchTarget = "";
 
-    function changeView(viewMode) {
-        document.getElementById('mainBody').className = viewMode;
-        document.getElementById('btnVDesktop').classList.toggle('active-view', viewMode === 'desktop-v');
-        document.getElementById('btnVMobile').classList.toggle('active-view', viewMode === 'mobile-v');
-        localStorage.setItem('viewPreference', viewMode);
-    }
+    window.onload = () => { if(rawData) processData(rawData); };
 
-    window.onload = () => {
-        const savedView = localStorage.getItem('viewPreference') || 'desktop-v';
-        const savedSize = localStorage.getItem('storedSize');
-        
-        changeView(savedView);
-        if(savedSize) minGroupSize = parseInt(savedSize);
-        
-        updateUIControls();
-        // Load lại dữ liệu cũ nếu có (không hiện thông báo)
-        if(rawData) processData(rawData, false); 
-    };
+    document.getElementById('fileInput').addEventListener('change', async function(e) {
+        const files = e.target.files;
+        if (!files.length) return;
 
-    function setSize(size) {
-        minGroupSize = size;
-        localStorage.setItem('storedSize', size);
-        updateUIControls();
-        if(rawData) processData(rawData, true);
-    }
+        let combinedContent = "";
+        for (let file of files) {
+            const text = await file.text();
+            combinedContent += text + " "; // Nối nội dung các file
+        }
 
-    function updateUIControls() {
-        document.getElementById('size4Btn').classList.toggle('active', minGroupSize === 4);
-        document.getElementById('size5Btn').classList.toggle('active', minGroupSize === 5);
-        document.getElementById('size6Btn').classList.toggle('active', minGroupSize === 6);
-        document.getElementById('labelSize').innerText = minGroupSize;
-    }
-
-    document.getElementById('fileInput').addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            rawData = e.target.result;
-            localStorage.setItem('storedData', rawData);
-            processData(rawData, true);
-        };
-        reader.readAsText(file);
+        rawData = combinedContent;
+        localStorage.setItem('storedMultiData', rawData);
+        processData(rawData);
     });
 
-    // LOGIC: SỐ (a) LÀ CÁC SỐ THUỘC TRƯỜNG HỢP 1
-    function processData(content, showAlert) {
+    function startSearch() {
+        searchTarget = document.getElementById('searchInput').value.trim();
+        if (rawData) processData(rawData);
+    }
+
+    function processData(content) {
         const nums = content.replace(/\D/g, '').split('').map(Number);
-        if (nums.length < 3) return;
-
-        const isA = new Array(nums.length).fill(false);
-        let aTotal = 0;
-
-        for (let i = 0; i <= nums.length - 3; i++) {
-            // Kiểm tra điều kiện Trường hợp 1
-            const match = (nums[i+1] > nums[i] && nums[i+2] < 5) || 
-                          (nums[i+1] < nums[i] && nums[i+2] > 5);
-            
-            // Nếu đúng là TH1 -> Đánh dấu là số (a)
-            if (match) { 
-                isA[i+2] = true; 
-                aTotal++; 
-            }
+        if (nums.length === 0) {
+            document.getElementById('result').innerText = "Không tìm thấy dữ liệu số.";
+            return;
         }
 
-        let highlightIndices = new Set();
+        const highlightIndices = new Set();
+        const searchIndices = new Set();
         let groupCount = 0;
-        let tempGroup = [];
+        let searchCount = 0;
 
-        // Tìm các cụm số (a) đứng liên tiếp
-        for (let i = 0; i < isA.length; i++) {
-            if (isA[i]) {
-                tempGroup.push(i);
-            } else {
-                if (tempGroup.length >= minGroupSize) {
-                    tempGroup.forEach(idx => highlightIndices.add(idx));
-                    groupCount++;
-                }
-                tempGroup = [];
+        const isA = (n) => n >= 5; 
+        const isB = (n) => n < 5; 
+
+        // 1. Logic tìm 4 mẫu pattern 9 số
+        for (let i = 0; i <= nums.length - 9; i++) {
+            let match = false;
+            // aab-bababa
+            if (isA(nums[i]) && isA(nums[i+1]) && isB(nums[i+2]) && isB(nums[i+3]) && isA(nums[i+4]) && isB(nums[i+5]) && isA(nums[i+6]) && isB(nums[i+7]) && isA(nums[i+8])) match = true;
+            // bab-ababab
+            else if (isB(nums[i]) && isA(nums[i+1]) && isB(nums[i+2]) && isA(nums[i+3]) && isB(nums[i+4]) && isA(nums[i+5]) && isB(nums[i+6]) && isA(nums[i+7]) && isB(nums[i+8])) match = true;
+            // aba-bababa
+            else if (isA(nums[i]) && isB(nums[i+1]) && isA(nums[i+2]) && isB(nums[i+3]) && isA(nums[i+4]) && isB(nums[i+5]) && isA(nums[i+6]) && isB(nums[i+7]) && isA(nums[i+8])) match = true;
+            // bba-ababab
+            else if (isB(nums[i]) && isB(nums[i+1]) && isA(nums[i+2]) && isA(nums[i+3]) && isB(nums[i+4]) && isA(nums[i+5]) && isB(nums[i+6]) && isA(nums[i+7]) && isB(nums[i+8])) match = true;
+
+            if (match) {
+                for (let j = 0; j < 9; j++) highlightIndices.add(i + j);
+                groupCount++;
+                i += 8;
             }
         }
-        if (tempGroup.length >= minGroupSize) {
-            tempGroup.forEach(idx => highlightIndices.add(idx));
-            groupCount++;
+
+        // 2. Logic tìm 2 chữ số cụ thể
+        if (searchTarget.length === 2) {
+            const s1 = parseInt(searchTarget[0]);
+            const s2 = parseInt(searchTarget[1]);
+            for (let i = 0; i <= nums.length - 2; i++) {
+                if (nums[i] === s1 && nums[i+1] === s2) {
+                    searchIndices.add(i);
+                    searchIndices.add(i + 1);
+                    searchCount++;
+                }
+            }
         }
 
-        // Cập nhật thống kê
+        // Cập nhật giao diện
         document.getElementById('totalCount').innerText = nums.length.toLocaleString();
-        document.getElementById('aCount').innerText = aTotal.toLocaleString();
         document.getElementById('groupCount').innerText = groupCount.toLocaleString();
+        document.getElementById('searchCount').innerText = searchCount.toLocaleString();
 
-        // Render kết quả
         let html = '';
         for (let i = 0; i < nums.length; i++) {
             let classes = ['num-item'];
-            if (isA[i]) classes.push('is-a');
             if (highlightIndices.has(i)) classes.push('highlight');
+            if (searchIndices.has(i)) classes.push('search-match');
             html += `<span class="${classes.join(' ')}">${nums[i]}</span>`;
         }
         document.getElementById('result').innerHTML = html;
-
-        // Hiện Alert khi người dùng bấm nút hoặc up file
-        if (showAlert) {
-            setTimeout(() => {
-                if (groupCount > 0) alert(`✅ Đã quét xong! Tìm thấy ${groupCount} cụm ${minGroupSize} số (a) thỏa mãn.`);
-            }, 50);
-        }
     }
 
     async function exportResults() {
         const resultArea = document.getElementById('result');
-        if (!rawData || resultArea.innerText.includes("Hãy tải file")) return;
-        
-        const shortID = Date.now().toString().slice(-4);
-        const fileName = `Export-Cụm${minGroupSize}-${shortID}.png`;
-
         try {
             const canvas = await html2canvas(resultArea, {
-                backgroundColor: "#000000",
+                backgroundColor: "#050505",
                 scale: 2,
                 height: resultArea.scrollHeight,
-                windowHeight: resultArea.scrollHeight,
-                onclone: (clonedDoc) => {
-                    clonedDoc.getElementById('result').style.height = 'auto';
-                    clonedDoc.getElementById('result').style.overflow = 'visible';
-                }
+                onclone: (clonedDoc) => { clonedDoc.getElementById('result').style.height = 'auto'; }
             });
             const link = document.createElement('a');
             link.href = canvas.toDataURL("image/png");
-            link.download = fileName;
+            link.download = `MultiFile-Export-${Date.now()}.png`;
             link.click();
         } catch (err) { console.error(err); }
     }
 
     function clearData() {
-        if(confirm("Xóa sạch dữ liệu đã lưu?")) {
-            localStorage.clear();
+        if(confirm("Xóa toàn bộ dữ liệu đã lưu?")) {
+            localStorage.removeItem('storedMultiData');
             location.reload();
         }
     }
