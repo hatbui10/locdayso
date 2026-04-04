@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Analyzer v26.0 - Full Stats</title>
+    <title>Analyzer v31.0 - Auto Focus Fixed</title>
     <style>
         :root {
             --bg-body: #0a0a0a;
@@ -18,61 +18,46 @@
         }
 
         body { font-family: 'Consolas', monospace; padding: 10px; background: var(--bg-body); color: var(--text-main); margin: 0; }
-        .container { max-width: 500px; margin: auto; background: var(--bg-container); padding: 15px; border-radius: 12px; border: 1px solid #333; }
+        .container { max-width: 650px; margin: auto; background: var(--bg-container); padding: 15px; border-radius: 12px; border: 1px solid #333; }
         
-        /* HÀNG 1: FILE */
-        .row-file {
-            background: var(--surface); padding: 10px; border-radius: 8px; 
-            margin-bottom: 10px; border: 1px solid #444; display: flex; justify-content: space-between; align-items: center;
-        }
-
-        /* HÀNG 2: MM & Ab */
-        .row-display {
-            background: #000; padding: 12px; border-radius: 8px;
-            margin-bottom: 10px; border: 1px solid #444; display: flex; justify-content: space-evenly;
-        }
+        .row-file { background: var(--surface); padding: 10px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #444; display: flex; justify-content: space-between; align-items: center; }
+        .row-display { background: #000; padding: 12px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #444; display: flex; justify-content: space-evenly; }
         .display-item { text-align: center; }
         .display-item label { display: block; font-size: 0.75rem; color: #888; margin-bottom: 5px; }
         .val-box { color: var(--secondary); font-size: 1.8rem; font-weight: bold; }
 
-        /* HÀNG 3: BOX THỐNG KÊ & NHẬP N */
-        .row-action {
-            display: flex; gap: 10px; margin-bottom: 10px; height: 80px;
-        }
-        
-        .box-stats {
-            flex: 2; background: #1a1a1a; border: 1px solid #444; border-radius: 8px;
-            padding: 10px 15px; display: flex; flex-direction: column; justify-content: center;
-        }
-        .stat-line { font-weight: bold; font-size: 1rem; display: flex; justify-content: space-between; }
+        .row-action { display: flex; gap: 8px; margin-bottom: 10px; height: 85px; }
+        .box-stats { flex: 1.5; background: #1a1a1a; border: 1px solid #444; border-radius: 8px; padding: 10px; display: flex; flex-direction: column; justify-content: center; }
+        .stat-line { font-weight: bold; font-size: 0.9rem; display: flex; justify-content: space-between; }
         .c-yellow { color: var(--warning); }
         .c-blue { color: var(--blue-light); }
 
-        .box-n {
-            flex: 1; background: var(--surface); border: 2px solid var(--primary); border-radius: 8px;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-        }
-        .box-n label { font-size: 0.65rem; color: var(--primary); font-weight: bold; margin-bottom: 2px; }
-        input.n-input {
-            background: transparent; border: none; color: #fff; width: 100%; 
-            text-align: center; font-size: 2.2rem; font-weight: bold; outline: none;
-        }
+        .box-input { flex: 1; background: var(--surface); border: 2px solid var(--primary); border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .box-input label { font-size: 0.6rem; color: var(--primary); font-weight: bold; margin-bottom: 2px; }
+        /* Thêm hiệu ứng focus rõ ràng hơn */
+        .box-input:focus-within { border-color: #fff; box-shadow: 0 0 10px var(--primary); }
+        
+        .n-input { background: transparent; border: none; color: #fff; width: 100%; text-align: center; font-size: 2rem; font-weight: bold; outline: none; }
 
-        /* KẾT QUẢ */
-        #extractedText {
+        .box-range { flex: 1; background: var(--surface); border: 1px solid var(--secondary); border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .box-range label { font-size: 0.6rem; color: var(--secondary); font-weight: bold; margin-bottom: 2px; }
+        .range-input { background: transparent; border: none; color: var(--secondary); width: 100%; text-align: center; font-size: 1.8rem; font-weight: bold; outline: none; }
+
+        .result-wrapper { display: flex; gap: 10px; margin-bottom: 10px; }
+        .text-group { flex: 1; display: flex; flex-direction: column; }
+        .text-group label { font-size: 0.7rem; color: #888; margin-bottom: 4px; font-weight: bold; }
+        
+        textarea {
             width: 100%; height: 350px; background: #000; color: var(--secondary);
-            border: 1px solid #444; border-radius: 8px; padding: 10px;
-            font-size: 1.2rem; resize: none; line-height: 1.4; box-sizing: border-box;
+            border: 1px solid #444; border-radius: 8px; padding: 8px;
+            font-size: 1.1rem; resize: none; line-height: 1.4; box-sizing: border-box;
         }
+        #sortedText { color: #fff; border-color: var(--secondary); }
 
-        .copy-btn { background: var(--success); color: white; width: 100%; margin-top: 10px; padding: 12px; font-size: 1rem; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .copy-btn { background: var(--success); color: white; width: 100%; padding: 12px; font-size: 1rem; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
         .clear-btn { background: #444; color: #aaa; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.7rem; }
         
-        /* FOOTER STATS (PHẦN BẠN CẦN) */
-        .footer-stats {
-            margin-top: 15px; padding-top: 10px; border-top: 1px dashed #333;
-            display: flex; justify-content: space-between; font-size: 0.75rem; color: #666;
-        }
+        .footer-stats { margin-top: 15px; padding-top: 10px; border-top: 1px dashed #333; display: flex; justify-content: space-between; font-size: 0.75rem; color: #666; }
         .footer-stats b { color: #888; }
     </style>
 </head>
@@ -80,7 +65,7 @@
 
 <div class="container">
     <div class="row-file">
-        <input type="file" id="fileInput" accept=".txt" style="width: 70%; font-size: 0.75rem;">
+        <input type="file" id="fileInput" accept=".txt" style="width: 60%; font-size: 0.7rem;">
         <button class="clear-btn" onclick="clearData()">Xóa nhớ</button>
     </div>
 
@@ -91,29 +76,40 @@
         </div>
         <div style="width:1px; background:#333; margin: 10px 0;"></div>
         <div class="display-item">
-            <label>Mặt Ab</label>
+            <label>Mặt Ab Nhập</label>
             <div id="abVal" class="val-box">--</div>
         </div>
     </div>
 
     <div class="row-action">
         <div class="box-stats">
-            <div class="stat-line c-yellow">
-                <span>🟡 Dãy Lớn:</span> <span id="countYellow">0</span>
-            </div>
-            <div class="stat-line c-blue" style="margin-top: 5px;">
-                <span>🔵 Dãy Nhỏ:</span> <span id="countBlue">0</span>
-            </div>
+            <div class="stat-line c-yellow"><span>🟡 Vàng:</span> <span id="countYellow">0</span></div>
+            <div class="stat-line c-blue" style="margin-top: 5px;"><span>🔵 Xanh:</span> <span id="countBlue">0</span></div>
         </div>
-        <div class="box-n">
+        
+        <div class="box-input">
             <label>NHẬP N</label>
-            <input type="tel" id="inputN" class="n-input" placeholder="?" maxlength="1" inputmode="numeric" autocomplete="off">
+            <input type="tel" id="inputN" class="n-input" placeholder="?" maxlength="1" inputmode="numeric" autocomplete="off" autofocus>
+        </div>
+
+        <div class="box-range">
+            <label>PHẠM VI ±</label>
+            <input type="number" id="inputRange" class="range-input" value="7" min="0" max="99">
         </div>
     </div>
     
-    <textarea id="extractedText" readonly placeholder="Kết quả..."></textarea>
+    <div class="result-wrapper">
+        <div class="text-group">
+            <label>DỮ LIỆU GỐC (MM)</label>
+            <textarea id="extractedText" readonly></textarea>
+        </div>
+        <div class="text-group">
+            <label>PHẠM VI ± (GẦN NHẤT)</label>
+            <textarea id="sortedText" readonly></textarea>
+        </div>
+    </div>
     
-    <button class="copy-btn" onclick="copyExtracted()">SAO CHÉP KẾT QUẢ</button>
+    <button class="copy-btn" onclick="copyExtracted()">SAO CHÉP KẾT QUẢ ƯU TIÊN</button>
 
     <div class="footer-stats">
         <span>Dữ liệu file: <b id="totalCount">0</b> số</span>
@@ -127,18 +123,38 @@
     let currentNumbers = []; 
 
     const nInput = document.getElementById('inputN');
+    const rangeInput = document.getElementById('inputRange');
     const mmBox = document.getElementById('mmVal');
     const abBox = document.getElementById('abVal');
+
+    // HÀM FOCUS MẠNH
+    function forceFocus() {
+        setTimeout(() => {
+            nInput.focus();
+            // Một số trình duyệt cần click nhẹ để cho phép focus
+        }, 100);
+    }
 
     window.onload = () => {
         const savedData = localStorage.getItem(STORAGE_KEY);
         if (savedData) {
             rawData = savedData;
-            processFileStats(rawData); // Tính toán thống kê file khi load trang
+            processFileStats(rawData);
         }
-        nInput.focus();
-        document.addEventListener('click', () => nInput.focus());
+        forceFocus();
     };
+
+    // Khi người dùng click bất kỳ đâu trên trang, tự động trả focus về ô nhập N
+    document.addEventListener('click', (e) => {
+        // Nếu không phải đang bấm vào nút copy hay chọn file thì mới focus
+        if (e.target.tagName !== 'BUTTON' && e.target.tagName !== 'INPUT') {
+            nInput.focus();
+        }
+    });
+
+    rangeInput.addEventListener('input', () => {
+        if (currentNumbers.length === 4) extractSequences();
+    });
 
     nInput.addEventListener('input', function() {
         const val = this.value.trim();
@@ -165,7 +181,7 @@
         if (!file) return;
         rawData = await file.text();
         localStorage.setItem(STORAGE_KEY, rawData);
-        processFileStats(rawData); // Cập nhật thống kê khi up file mới
+        processFileStats(rawData);
         currentNumbers = [];
         updateDisplay();
         nInput.focus();
@@ -193,48 +209,59 @@
 
     function extractSequences() {
         const mm = mmBox.innerText;
-        const ab = abBox.innerText;
-        const textArea = document.getElementById('extractedText');
-        if (mm === "--" || ab === "--") return;
+        const abInputStr = abBox.innerText;
+        const abInputVal = parseInt(abInputStr);
+        const userRange = parseInt(rangeInput.value) || 0;
+
+        const areaNormal = document.getElementById('extractedText');
+        const areaSorted = document.getElementById('sortedText');
+        
+        if (mm === "--" || abInputStr === "--") return;
 
         const nums = rawData.replace(/\D/g, '').split('').map(Number);
-        let blocks = { AA: [], AB: [], BB: [], BA: [] };
+        let allMatches = [];
         const isA = (n) => n >= 5;
         const isB = (n) => n < 5;
 
         for (let i = 0; i <= nums.length - 8; i++) {
             if (nums[i] === parseInt(mm[0]) && nums[i+1] === parseInt(mm[1])) {
                 let d = nums.slice(i, i + 8);
+                let currentAb = parseInt(`${d[2]}${d[3]}`);
                 let lastFour = d.slice(4);
                 let colorTag = "⚪ ";
                 if (lastFour.every(n => isA(n))) colorTag = "🟡 ";
                 else if (lastFour.every(n => isB(n))) colorTag = "🔵 ";
 
-                let formatted = `${colorTag}${d[0]}${d[1]}-${d[2]}${d[3]}-${d[4]}${d[5]} ${d[6]}${d[7]}`;
-                if (isA(d[2]) && isA(d[3])) blocks.AA.push(formatted);
-                else if (isA(d[2]) && isB(d[3])) blocks.AB.push(formatted);
-                else if (isB(d[2]) && isB(d[3])) blocks.BB.push(formatted);
-                else if (isB(d[2]) && isA(d[3])) blocks.BA.push(formatted);
+                allMatches.push({
+                    ab: currentAb,
+                    fullStr: `${colorTag}${d[0]}${d[1]}-${d[2]}${d[3]}-${d[4]}${d[5]} ${d[6]}${d[7]}`,
+                    diff: Math.abs(currentAb - abInputVal)
+                });
             }
         }
 
-        const n2 = parseInt(ab[0]), n3 = parseInt(ab[1]);
-        let target = (isA(n2) && isA(n3)) ? "AA" : (isA(n2) && isB(n3)) ? "AB" : (isB(n2) && isB(n3)) ? "BB" : "BA";
-        
-        textArea.value = blocks[target].length > 0 
-            ? `[ KHỐI ${target} ] (MM:${mm} Ab:${ab})\n` + blocks[target].join('\n') 
-            : `KHÔNG CÓ DỮ LIỆU KHỐI ${target}`;
+        areaNormal.value = allMatches.length > 0 
+            ? `[ TẤT CẢ MM:${mm} ]\n` + allMatches.map(m => m.fullStr).join('\n')
+            : "Trống";
 
-        document.getElementById('countYellow').innerText = (textArea.value.match(/🟡/g) || []).length;
-        document.getElementById('countBlue').innerText = (textArea.value.match(/🔵/g) || []).length;
+        let filteredRange = allMatches.filter(m => m.diff <= userRange);
+        let sorted = filteredRange.sort((a, b) => a.diff - b.diff);
+
+        areaSorted.value = sorted.length > 0
+            ? `[ PHẠM VI ±${userRange} ]\n` + sorted.map(m => m.fullStr).join('\n')
+            : `TRỐNG (±${userRange})`;
+
+        document.getElementById('countYellow').innerText = (areaSorted.value.match(/🟡/g) || []).length;
+        document.getElementById('countBlue').innerText = (areaSorted.value.match(/🔵/g) || []).length;
     }
 
     function copyExtracted() {
-        const textArea = document.getElementById('extractedText');
+        const textArea = document.getElementById('sortedText');
         if (!textArea.value) return;
         textArea.select();
         document.execCommand('copy');
         alert("Đã copy!");
+        nInput.focus(); // Sau khi copy xong trả focus lại ngay
     }
 
     function clearData() {
