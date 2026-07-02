@@ -3,277 +3,212 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tool Trích Xuất & Phân Loại</title>
+    <title>Công cụ tạo danh sách học sinh</title>
     <style>
-        :root {
-            --bg: #121212;
-            --card: #1e1e1e;
-            --text: #e0e0e0;
-            --accent: #ffeb3b;
-            --border: #444;
-            --blue-hl: #007bff; /* Nền xanh dương */
-            --orange-hl: #ff9800; /* Nền cam */
-        }
-
         body {
-            font-family: sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            padding: 15px;
-            display: flex;
-            justify-content: center;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #f1f5f9;
+            margin: 20px;
+            color: #334155;
         }
-
         .container {
-            width: 100%;
-            max-width: 400px;
-            background: var(--card);
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
             padding: 20px;
-            border-radius: 12px;
-            border: 1px solid var(--border);
-        }
-
-        .selector-btns {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        button {
-            padding: 12px;
-            background: #333;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        button.active { background: var(--accent); color: #000; }
-
-        #input-container {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        input[type="number"] {
-            width: 55px;
-            height: 60px;
-            background: #252525;
-            border: 2px solid var(--border);
-            color: #fff;
             border-radius: 8px;
-            font-size: 28px;
-            text-align: center;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+        h2 { text-align: center; color: #1e3a8a; margin-top: 0; }
+        p { font-size: 13px; color: #64748b; line-height: 1.5; }
+        
+        .tabs { display: flex; gap: 10px; margin-bottom: 15px; }
+        .tab-btn {
+            flex: 1; padding: 10px; background: #e2e8f0; border: none;
+            border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px;
+        }
+        .tab-btn.active { background: #2563eb; color: white; }
+        
+        .panel { display: none; background: #f8fafc; padding: 15px; border-radius: 6px; border: 1px solid #e2e8f0; }
+        .panel.active { display: block; }
+
+        /* Form nhập từng dòng */
+        .form-row { display: flex; gap: 10px; margin-bottom: 10px; }
+        input {
+            flex: 1; padding: 8px; border: 1px solid #cbd5e1;
+            border-radius: 4px; font-size: 14px;
+        }
+        .btn-add { background: #10b981; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold;}
+        .btn-remove { background: #ef4444; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; }
+
+        /* Nhập hàng loạt */
+        textarea {
+            width: 100%; height: 15px; min-height: 120px; padding: 10px;
+            box-sizing: border-box; border: 1px solid #cbd5e1; border-radius: 4px;
+            font-size: 14px; resize: vertical; font-family: monospace;
         }
 
-        input[type="number"]:focus { border-color: var(--accent); outline: none; }
-
-        .file-box {
-            border: 1px dashed #555;
-            padding: 10px;
-            border-radius: 6px;
-            margin-bottom: 10px;
-            position: relative;
-        }
-
-        #file-info { font-size: 11px; color: #888; margin-top: 5px; }
-
-        #result {
-            margin-top: 20px;
-            background: #000;
-            padding: 15px;
-            border-radius: 8px;
-            border-left: 4px solid var(--accent);
-            min-height: 100px;
-            font-family: 'Courier New', monospace;
-            white-space: pre-wrap;
-            color: #00ff00;
-            font-size: 18px;
-            line-height: 1.8;
-        }
-
-        .highlight-yellow {
-            background-color: var(--accent);
-            color: #000;
-            font-weight: bold;
-            padding: 0px 4px;
-            border-radius: 3px;
-        }
-
-        /* Logic highlight mới theo yêu cầu */
-        .bg-blue { background-color: var(--blue-hl); color: #fff; padding: 0 2px; border-radius: 2px; }
-        .bg-orange { background-color: var(--orange-hl); color: #000; padding: 0 2px; border-radius: 2px; }
-
-        .clear-btn {
-            background: #ff5252;
-            padding: 5px 10px;
-            font-size: 10px;
-            margin-top: 5px;
+        /* Kết quả */
+        .output-box { margin-top: 20px; position: relative; }
+        .output-title { font-weight: bold; color: #1e3a8a; margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center;}
+        .btn-copy { background: #2563eb; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;}
+        .btn-copy:active { background: #1d4ed8; }
+        pre {
+            background: #1e293b; color: #f8fafc; padding: 15px;
+            border-radius: 6px; overflow-x: auto; font-size: 13px; margin: 0;
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-        <span style="font-size: 11px; color: #777; text-transform: uppercase;">1. File nguồn</span>
-        <button class="clear-btn" onclick="clearAllData()">XÓA HẾT DỮ LIỆU CŨ</button>
-    </div>
+    <h2>Tạo Biến const Học Sinh</h2>
     
-    <div class="file-box">
-        <input type="file" id="fileInput" multiple accept=".txt" style="width: 100%;">
-        <div id="file-info">Chưa có dữ liệu.</div>
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('tab-excel')">Cách 1: Copy từ Excel / Nhập hàng loạt</button>
+        <button class="tab-btn" onclick="switchTab('tab-manual')">Cách 2: Nhập từng người</button>
     </div>
 
-    <div style="font-size: 11px; color: #777; margin-bottom: 5px; text-transform: uppercase;">2. Số lượng chữ số</div>
-    <div class="selector-btns">
-        <button onclick="updateMode(1)" id="m1">1 Ô</button>
-        <button onclick="updateMode(2)" id="m2">2 Ô</button>
-        <button onclick="updateMode(3)" id="m3">3 Ô</button>
+    <div id="tab-excel" class="panel active">
+        <p><strong>Hướng dẫn:</strong> Hãy copy 2 cột (Họ tên và Số điện thoại) từ Excel rồi dán vào đây. <br>Hoặc tự gõ theo cấu trúc: <code>Tên [Dấu Cách hoặc Tab] SốĐiệnThoại</code> (Mỗi người 1 dòng).</p>
+        <textarea id="bulkInput" placeholder="Nguyễn Văn A   0901234567&#10;Trần Thị B     0912345678" oninput="generateFromBulk()"></textarea>
     </div>
 
-    <div id="input-container"></div>
+    <div id="tab-manual" class="panel">
+        <p>Nhập tên và số điện thoại của từng học sinh, bấm nút "Thêm học sinh" để mở thêm dòng.</p>
+        <div id="manual-rows">
+            <div class="form-row">
+                <input type="text" class="input-name" placeholder="Họ và tên" oninput="generateFromManual()">
+                <input type="tel" class="input-phone" placeholder="Số điện thoại" oninput="generateFromManual()">
+                <button class="btn-remove" onclick="removeRow(this)">Xóa</button>
+            </div>
+        </div>
+        <button class="btn-add" onclick="addManualRow()">+ Thêm học sinh</button>
+    </div>
 
-    <button onclick="runFilter()" style="width:100%; background: var(--accent); color: black; padding: 15px; border-radius: 8px; font-weight: bold;">XUẤT KẾT QUẢ</button>
-
-    <div id="result">Kết quả...</div>
+    <div class="output-box">
+        <div class="output-title">
+            <span>Kết quả mã JavaScript (const students):</span>
+            <button class="btn-copy" onclick="copyToClipboard()">Copy Mã Này</button>
+        </div>
+        <pre><code id="outputResult">const students = [];</code></pre>
+    </div>
 </div>
 
 <script>
-    let combinedData = "";
-
-    window.onload = function() {
-        const savedData = localStorage.getItem('myFileData');
-        if (savedData) {
-            combinedData = savedData;
-            document.getElementById('file-info').innerText = "Đã khôi phục dữ liệu.";
-            document.getElementById('file-info').style.color = "#4caf50";
-        }
-        const savedMode = localStorage.getItem('myMode') || 1;
-        updateMode(parseInt(savedMode));
-    };
-
-    document.getElementById('fileInput').addEventListener('change', function(e) {
-        Array.from(e.target.files).forEach(file => {
-            const reader = new FileReader();
-            reader.onload = (ev) => { 
-                combinedData += ev.target.result + "\n"; 
-                localStorage.setItem('myFileData', combinedData);
-                document.getElementById('file-info').innerText = "Đã tải & lưu dữ liệu!";
-                document.getElementById('file-info').style.color = "#4caf50";
-            };
-            reader.readAsText(file);
-        });
-    });
-
-    function clearAllData() {
-        if(confirm("Xóa sạch dữ liệu đã lưu?")) {
-            localStorage.clear();
-            combinedData = "";
-            location.reload();
-        }
-    }
-
-    function updateMode(n) {
-        localStorage.setItem('myMode', n);
-        const container = document.getElementById('input-container');
-        container.innerHTML = "";
-        [1,2,3].forEach(i => document.getElementById('m'+i).className = (i==n ? 'active' : ''));
-        for (let i = 0; i < n; i++) {
-            const inp = document.createElement('input');
-            inp.type = "number";
-            inp.inputMode = "numeric";
-            inp.className = "single-input";
-            inp.addEventListener('input', function() {
-                if (this.value.length > 1) this.value = this.value.slice(-1);
-                if (this.value.length === 1) {
-                    const next = this.nextElementSibling;
-                    if (next) next.focus();
-                }
-            });
-            inp.addEventListener('keydown', function(e) {
-                if (e.key === "Backspace" && this.value === "") {
-                    const prev = this.previousElementSibling;
-                    if (prev) prev.focus();
-                }
-            });
-            container.appendChild(inp);
-        }
-    }
-
-    function runFilter() {
-        const inputs = document.querySelectorAll('.single-input');
-        const ab = Array.from(inputs).map(i => i.value).join("");
-        const resBox = document.getElementById('result');
+    // Chuyển đổi tab qua lại
+    function switchTab(tabId) {
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.panel').forEach(panel => panel.classList.remove('active'));
         
-        if (!combinedData) { alert("Chưa có dữ liệu!"); return; }
-        if (ab === "" || ab.length < inputs.length) { alert("Nhập đủ số!"); return; }
+        if(tabId === 'tab-excel') {
+            document.querySelectorAll('.tab-btn')[0].classList.add('active');
+            generateFromBulk();
+        } else {
+            document.querySelectorAll('.tab-btn')[1].classList.add('active');
+            generateFromManual();
+        }
+        document.getElementById(tabId).classList.add('active');
+    }
 
-        let resultSet = new Set();
-        let pos = 0;
-        let cleanData = combinedData.replace(/\s+/g, '');
+    // Hiển thị code ra màn hình định dạng đẹp
+    function renderCode(arr) {
+        const codeElement = document.getElementById('outputResult');
+        if (arr.length === 0) {
+            codeElement.innerText = "const students = [];";
+            return;
+        }
+        
+        let jsonStr = "const students = [\n";
+        arr.forEach((st, idx) => {
+            jsonStr += `    { name: "${st.name}", phone: "${st.phone}" }${idx < arr.length - 1 ? ',' : ''}\n`;
+        });
+        jsonStr += "];";
+        codeElement.innerText = jsonStr;
+    }
 
-        while ((pos = cleanData.indexOf(ab, pos)) !== -1) {
-            let bIndex = pos + ab.length;
-            let bChar = cleanData.charAt(bIndex);
+    // Xử lý CÁCH 1: Nhập hàng loạt từ excel
+    function generateFromBulk() {
+        const text = document.getElementById('bulkInput').value;
+        const lines = text.split('\n');
+        const list = [];
+
+        lines.forEach(line => {
+            if (!line.trim()) return;
             
-            if (bChar !== "") {
-                let bVal = parseInt(bChar);
-                let x5Str = cleanData.substring(bIndex + 1, bIndex + 6);
-                
-                if (x5Str.length === 5) {
-                    let d = x5Str.split('').map(Number);
-                    let isSatisfied = false;
-
-                    // Logic cũ giữ nguyên
-                    if (bVal >= 5) {
-                        let cond1 = (d[0] >= 5 || d[1] >= 5);
-                        let cond2 = (d[2] < 5 || d[3] < 5 || d[4] < 5);
-                        if (cond1 || cond2) isSatisfied = true;
-                    } else {
-                        let cond1 = (d[0] < 5 || d[1] < 5);
-                        let cond2 = (d[2] >= 5 || d[3] >= 5 || d[4] >= 5);
-                        if (cond1 || cond2) isSatisfied = true;
-                    }
-
-                    // --- BỔ SUNG LOGIC HIGHLIGHT CHO BCD ---
-                    let bcdClass = "";
-                    if (bVal >= 5 && d[0] < 5 && d[1] < 5) {
-                        bcdClass = "bg-blue";
-                    } else if (bVal < 5 && d[0] >= 5 && d[1] >= 5) {
-                        bcdClass = "bg-orange";
-                    }
-
-                    let bPart = bChar;
-                    let cPart = x5Str[0];
-                    let dPart = x5Str[1];
-                    let bcdDisplay = bcdClass ? `<span class="${bcdClass}">${bPart}${cPart}${dPart}</span>` : `${bPart}${cPart}${dPart}`;
-                    // ---------------------------------------
-
-                    let p3 = cleanData.substring(bIndex + 1, bIndex + 4); 
-                    let p4 = cleanData.substring(bIndex + 4, bIndex + 8); 
-                    
-                    let lineOutput = "";
-                    if (isSatisfied) {
-                        // Kết quả dạng: AB - bcd - e fghk (đúng 10 số như code gốc)
-                        lineOutput = `${ab}-${bcdDisplay}${x5Str[2]} ${p4}`;
-                    } else {
-                        // Giữ nguyên logic tô màu vàng gốc
-                        lineOutput = `${ab}-${bChar}<span class="highlight-yellow">${x5Str}</span>${cleanData.substring(bIndex + 6, bIndex + 8)}`;
-                    }
-                    
-                    resultSet.add(lineOutput);
+            // Tách theo ký tự Tab (khi copy từ excel) hoặc khoảng trắng kép trở lên
+            let parts = line.split(/\t+/);
+            if (parts.length < 2) {
+                // Thử tách nếu chỉ dùng dấu cách thường giữa tên và số
+                const lastSpaceIndex = line.trim().lastIndexOf(" ");
+                if (lastSpaceIndex !== -1) {
+                    parts = [line.trim().substring(0, lastSpaceIndex), line.trim().substring(lastSpaceIndex + 1)];
                 }
             }
-            pos += 1;
-        }
 
-        const finalArray = Array.from(resultSet);
-        resBox.innerHTML = finalArray.length > 0 ? finalArray.join('\n') : "Không tìm thấy chuỗi '" + ab + "'";
+            if (parts.length >= 2) {
+                const name = parts[0].trim();
+                const phone = parts[1].trim().replace(/[^0-9]/g, ''); // loại bỏ ký tự lạ nếu có trong số điện thoại
+                if(name && phone) {
+                    list.push({ name, phone });
+                }
+            }
+        });
+        renderCode(list);
+    }
+
+    // Xử lý CÁCH 2: Thêm dòng nhập thủ công
+    function addManualRow() {
+        const container = document.getElementById('manual-rows');
+        const newRow = document.createElement('div');
+        newRow.className = 'form-row';
+        newRow.innerHTML = `
+            <input type="text" class="input-name" placeholder="Họ và tên" oninput="generateFromManual()">
+            <input type="tel" class="input-phone" placeholder="Số điện thoại" oninput="generateFromManual()">
+            <button class="btn-remove" onclick="removeRow(this)">Xóa</button>
+        `;
+        container.appendChild(newRow);
+    }
+
+    function removeRow(btn) {
+        const rows = document.querySelectorAll('.form-row');
+        if(rows.length > 1) {
+            btn.parentElement.remove();
+            generateFromManual();
+        } else {
+            // Nếu còn 1 dòng duy nhất thì xóa rỗng ô chứ không xóa dòng
+            btn.parentElement.querySelectorAll('input').forEach(i => i.value = '');
+            generateFromManual();
+        }
+    }
+
+    function generateFromManual() {
+        const rows = document.querySelectorAll('.form-row');
+        const list = [];
+        rows.forEach(row => {
+            const name = row.querySelector('.input-name').value.trim();
+            const phone = row.querySelector('.input-phone').value.trim().replace(/[^0-9]/g, '');
+            if (name && phone) {
+                list.push({ name, phone });
+            }
+        });
+        renderCode(list);
+    }
+
+    // Hàm sao chép nhanh kết quả
+    function copyToClipboard() {
+        const codeText = document.getElementById('outputResult').innerText;
+        navigator.clipboard.writeText(codeText).then(() => {
+            const copyBtn = document.querySelector('.btn-copy');
+            copyBtn.innerText = "Đã Copy!";
+            copyBtn.style.background = "#10b981";
+            setTimeout(() => {
+                copyBtn.innerText = "Copy Mã Này";
+                copyBtn.style.background = "#2563eb";
+            }, 1500);
+        }).catch(err => {
+            alert('Không thể tự động copy, bạn hãy bôi đen mã để copy thủ công.');
+        });
     }
 </script>
 
