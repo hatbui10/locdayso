@@ -3,214 +3,145 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Công cụ tạo danh sách học sinh</title>
+    <title>Công cụ tự động Format HTML (Tự động chạy)</title>
+    <!-- Thư viện js-beautify -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.14.7/beautify-html.min.js"></script>
     <style>
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: #f1f5f9;
-            margin: 20px;
-            color: #334155;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 30px;
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+        }
+        h2 {
+            color: #4ec9b0;
+            margin-bottom: 20px;
         }
         .container {
-            max-width: 800px;
-            margin: 0 auto;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            margin-bottom: 20px;
+            position: relative;
         }
-        h2 { text-align: center; color: #1e3a8a; margin-top: 0; }
-        p { font-size: 13px; color: #64748b; line-height: 1.5; }
-        
-        .tabs { display: flex; gap: 10px; margin-bottom: 15px; }
-        .tab-btn {
-            flex: 1; padding: 10px; background: #e2e8f0; border: none;
-            border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px;
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #9cdcfe;
         }
-        .tab-btn.active { background: #2563eb; color: white; }
-        
-        .panel { display: none; background: #f8fafc; padding: 15px; border-radius: 6px; border: 1px solid #e2e8f0; }
-        .panel.active { display: block; }
-
-        /* Form nhập từng dòng */
-        .form-row { display: flex; gap: 10px; margin-bottom: 10px; }
-        input {
-            flex: 1; padding: 8px; border: 1px solid #cbd5e1;
-            border-radius: 4px; font-size: 14px;
-        }
-        .btn-add { background: #10b981; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold;}
-        .btn-remove { background: #ef4444; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; }
-
-        /* Nhập hàng loạt */
         textarea {
-            width: 100%; height: 15px; min-height: 120px; padding: 10px;
-            box-sizing: border-box; border: 1px solid #cbd5e1; border-radius: 4px;
-            font-size: 14px; resize: vertical; font-family: monospace;
+            width: 100%;
+            height: 360px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 14px;
+            padding: 12px;
+            border: 1px solid #3c3c3c;
+            border-radius: 6px;
+            background: #252526;
+            color: #ce9178;
+            box-sizing: border-box;
+            resize: vertical;
         }
-
-        /* Kết quả */
-        .output-box { margin-top: 20px; position: relative; }
-        .output-title { font-weight: bold; color: #1e3a8a; margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center;}
-        .btn-copy { background: #2563eb; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;}
-        .btn-copy:active { background: #1d4ed8; }
-        pre {
-            background: #1e293b; color: #f8fafc; padding: 15px;
-            border-radius: 6px; overflow-x: auto; font-size: 13px; margin: 0;
+        textarea:focus {
+            outline: none;
+            border-color: #007acc;
+        }
+        button {
+            background-color: #007acc;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background-color: #005999;
+        }
+        .copy-btn {
+            background-color: #28a745;
+        }
+        .copy-btn:hover {
+            background-color: #218838;
+        }
+        .output-wrapper {
+            position: relative;
+        }
+        .copy-absolute {
+            position: absolute;
+            top: 38px;
+            right: 15px;
+            padding: 6px 12px;
+            font-size: 13px;
         }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2>Tạo Biến const Học Sinh</h2>
+    <h2>Công cụ tự động Format Code HTML (Auto-Run)</h2>
     
-    <div class="tabs">
-        <button class="tab-btn active" onclick="switchTab('tab-excel')">Cách 1: Copy từ Excel / Nhập hàng loạt</button>
-        <button class="tab-btn" onclick="switchTab('tab-manual')">Cách 2: Nhập từng người</button>
+    <div class="container">
+        <label for="inputCode">Dán đoạn code cần sửa vào đây (Tự động format ngay khi dán):</label>
+        <textarea id="inputCode" placeholder="Dán code lỗi hoặc lộn xộn vào đây..."></textarea>
     </div>
 
-    <div id="tab-excel" class="panel active">
-        <p><strong>Hướng dẫn:</strong> Hãy copy 2 cột (Họ tên và Số điện thoại) từ Excel rồi dán vào đây. <br>Hoặc tự gõ theo cấu trúc: <code>Tên [Dấu Cách hoặc Tab] SốĐiệnThoại</code> (Mỗi người 1 dòng).</p>
-        <textarea id="bulkInput" placeholder="Nguyễn Văn A   0901234567&#10;Trần Thị B     0912345678" oninput="generateFromBulk()"></textarea>
+    <div class="container output-wrapper">
+        <label for="outputCode">Kết quả sau khi làm đẹp:</label>
+        <textarea id="outputCode" readonly placeholder="Kết quả sẽ hiển thị ở đây..."></textarea>
+        <button class="copy-btn copy-absolute" onclick="copyToClipboard()">📋 Copy</button>
     </div>
 
-    <div id="tab-manual" class="panel">
-        <p>Nhập tên và số điện thoại của từng học sinh, bấm nút "Thêm học sinh" để mở thêm dòng.</p>
-        <div id="manual-rows">
-            <div class="form-row">
-                <input type="text" class="input-name" placeholder="Họ và tên" oninput="generateFromManual()">
-                <input type="tel" class="input-phone" placeholder="Số điện thoại" oninput="generateFromManual()">
-                <button class="btn-remove" onclick="removeRow(this)">Xóa</button>
-            </div>
-        </div>
-        <button class="btn-add" onclick="addManualRow()">+ Thêm học sinh</button>
-    </div>
-
-    <div class="output-box">
-        <div class="output-title">
-            <span>Kết quả mã JavaScript (const students):</span>
-            <button class="btn-copy" onclick="copyToClipboard()">Copy Mã Này</button>
-        </div>
-        <pre><code id="outputResult">const students = [];</code></pre>
-    </div>
-</div>
-
-<script>
-    // Chuyển đổi tab qua lại
-    function switchTab(tabId) {
-        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-        document.querySelectorAll('.panel').forEach(panel => panel.classList.remove('active'));
-        
-        if(tabId === 'tab-excel') {
-            document.querySelectorAll('.tab-btn')[0].classList.add('active');
-            generateFromBulk();
-        } else {
-            document.querySelectorAll('.tab-btn')[1].classList.add('active');
-            generateFromManual();
-        }
-        document.getElementById(tabId).classList.add('active');
-    }
-
-    // Hiển thị code ra màn hình định dạng đẹp
-    function renderCode(arr) {
-        const codeElement = document.getElementById('outputResult');
-        if (arr.length === 0) {
-            codeElement.innerText = "const students = [];";
-            return;
-        }
-        
-        let jsonStr = "const students = [\n";
-        arr.forEach((st, idx) => {
-            jsonStr += `    { name: "${st.name}", phone: "${st.phone}" }${idx < arr.length - 1 ? ',' : ''}\n`;
+    <script>
+        // Lắng nghe sự kiện 'input' hoặc 'paste' để tự động format ngay khi dán dữ liệu vào
+        document.getElementById('inputCode').addEventListener('input', formatMyCode);
+        document.getElementById('inputCode').addEventListener('paste', function() {
+            // Dùng setTimeout nhỏ để đảm bảo nội dung đã được dán xong vào textarea trước khi đọc giá trị
+            setTimeout(formatMyCode, 10);
         });
-        jsonStr += "];";
-        codeElement.innerText = jsonStr;
-    }
 
-    // Xử lý CÁCH 1: Nhập hàng loạt từ excel
-    function generateFromBulk() {
-        const text = document.getElementById('bulkInput').value;
-        const lines = text.split('\n');
-        const list = [];
+        function formatMyCode() {
+            const rawCode = document.getElementById('inputCode').value;
+            const outputBox = document.getElementById('outputCode');
 
-        lines.forEach(line => {
-            if (!line.trim()) return;
+            if (!rawCode.trim()) {
+                outputBox.value = "";
+                return;
+            }
             
-            // Tách theo ký tự Tab (khi copy từ excel) hoặc khoảng trắng kép trở lên
-            let parts = line.split(/\t+/);
-            if (parts.length < 2) {
-                // Thử tách nếu chỉ dùng dấu cách thường giữa tên và số
-                const lastSpaceIndex = line.trim().lastIndexOf(" ");
-                if (lastSpaceIndex !== -1) {
-                    parts = [line.trim().substring(0, lastSpaceIndex), line.trim().substring(lastSpaceIndex + 1)];
-                }
-            }
+            // Cấu hình định dạng HTML
+            const formatted = html_beautify(rawCode, {
+                "indent_size": 4,
+                "indent_char": " ",
+                "max_preserve_newlines": 1,
+                "preserve_newlines": true,
+                "end_with_newline": false
+            });
 
-            if (parts.length >= 2) {
-                const name = parts[0].trim();
-                const phone = parts[1].trim().replace(/[^0-9]/g, ''); // loại bỏ ký tự lạ nếu có trong số điện thoại
-                if(name && phone) {
-                    list.push({ name, phone });
-                }
-            }
-        });
-        renderCode(list);
-    }
-
-    // Xử lý CÁCH 2: Thêm dòng nhập thủ công
-    function addManualRow() {
-        const container = document.getElementById('manual-rows');
-        const newRow = document.createElement('div');
-        newRow.className = 'form-row';
-        newRow.innerHTML = `
-            <input type="text" class="input-name" placeholder="Họ và tên" oninput="generateFromManual()">
-            <input type="tel" class="input-phone" placeholder="Số điện thoại" oninput="generateFromManual()">
-            <button class="btn-remove" onclick="removeRow(this)">Xóa</button>
-        `;
-        container.appendChild(newRow);
-    }
-
-    function removeRow(btn) {
-        const rows = document.querySelectorAll('.form-row');
-        if(rows.length > 1) {
-            btn.parentElement.remove();
-            generateFromManual();
-        } else {
-            // Nếu còn 1 dòng duy nhất thì xóa rỗng ô chứ không xóa dòng
-            btn.parentElement.querySelectorAll('input').forEach(i => i.value = '');
-            generateFromManual();
+            outputBox.value = formatted;
         }
-    }
 
-    function generateFromManual() {
-        const rows = document.querySelectorAll('.form-row');
-        const list = [];
-        rows.forEach(row => {
-            const name = row.querySelector('.input-name').value.trim();
-            const phone = row.querySelector('.input-phone').value.trim().replace(/[^0-9]/g, '');
-            if (name && phone) {
-                list.push({ name, phone });
+        function copyToClipboard() {
+            const outputBox = document.getElementById('outputCode');
+            if (!outputBox.value.trim()) {
+                alert("Chưa có kết quả để copy!");
+                return;
             }
-        });
-        renderCode(list);
-    }
-
-    // Hàm sao chép nhanh kết quả
-    function copyToClipboard() {
-        const codeText = document.getElementById('outputResult').innerText;
-        navigator.clipboard.writeText(codeText).then(() => {
-            const copyBtn = document.querySelector('.btn-copy');
-            copyBtn.innerText = "Đã Copy!";
-            copyBtn.style.background = "#10b981";
-            setTimeout(() => {
-                copyBtn.innerText = "Copy Mã Này";
-                copyBtn.style.background = "#2563eb";
-            }, 1500);
-        }).catch(err => {
-            alert('Không thể tự động copy, bạn hãy bôi đen mã để copy thủ công.');
-        });
-    }
-</script>
+            
+            outputBox.select();
+            outputBox.setSelectionRange(0, 99999);
+            
+            navigator.clipboard.writeText(outputBox.value).then(() => {
+                const btn = document.querySelector('.copy-absolute');
+                btn.innerText = "✅ Đã copy!";
+                setTimeout(() => {
+                    btn.innerText = "📋 Copy";
+                }, 2000);
+            }).catch(err => {
+                alert("Lỗi khi copy: " + err);
+            });
+        }
+    </script>
 
 </body>
 </html>
