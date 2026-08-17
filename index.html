@@ -1,147 +1,208 @@
 <!DOCTYPE html>
 <html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Công cụ tự động Format HTML (Tự động chạy)</title>
-    <!-- Thư viện js-beautify -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.14.7/beautify-html.min.js"></script>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 30px;
-            background-color: #1e1e1e;
-            color: #d4d4d4;
-        }
-        h2 {
-            color: #4ec9b0;
-            margin-bottom: 20px;
-        }
-        .container {
-            margin-bottom: 20px;
-            position: relative;
-        }
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: bold;
-            color: #9cdcfe;
-        }
-        textarea {
-            width: 100%;
-            height: 360px;
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 14px;
-            padding: 12px;
-            border: 1px solid #3c3c3c;
-            border-radius: 6px;
-            background: #252526;
-            color: #ce9178;
-            box-sizing: border-box;
-            resize: vertical;
-        }
-        textarea:focus {
-            outline: none;
-            border-color: #007acc;
-        }
-        button {
-            background-color: #007acc;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            font-size: 15px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: background 0.2s;
-        }
-        button:hover {
-            background-color: #005999;
-        }
-        .copy-btn {
-            background-color: #28a745;
-        }
-        .copy-btn:hover {
-            background-color: #218838;
-        }
-        .output-wrapper {
-            position: relative;
-        }
-        .copy-absolute {
-            position: absolute;
-            top: 38px;
-            right: 15px;
-            padding: 6px 12px;
-            font-size: 13px;
-        }
-    </style>
-</head>
-<body>
 
-    <h2>Công cụ tự động Format Code HTML (Auto-Run)</h2>
-    
-    <div class="container">
-        <label for="inputCode">Dán đoạn code cần sửa vào đây (Tự động format ngay khi dán):</label>
-        <textarea id="inputCode" placeholder="Dán code lỗi hoặc lộn xộn vào đây..."></textarea>
-    </div>
-
-    <div class="container output-wrapper">
-        <label for="outputCode">Kết quả sau khi làm đẹp:</label>
-        <textarea id="outputCode" readonly placeholder="Kết quả sẽ hiển thị ở đây..."></textarea>
-        <button class="copy-btn copy-absolute" onclick="copyToClipboard()">📋 Copy</button>
-    </div>
-
-    <script>
-        // Lắng nghe sự kiện 'input' hoặc 'paste' để tự động format ngay khi dán dữ liệu vào
-        document.getElementById('inputCode').addEventListener('input', formatMyCode);
-        document.getElementById('inputCode').addEventListener('paste', function() {
-            // Dùng setTimeout nhỏ để đảm bảo nội dung đã được dán xong vào textarea trước khi đọc giá trị
-            setTimeout(formatMyCode, 10);
-        });
-
-        function formatMyCode() {
-            const rawCode = document.getElementById('inputCode').value;
-            const outputBox = document.getElementById('outputCode');
-
-            if (!rawCode.trim()) {
-                outputBox.value = "";
-                return;
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Công cụ tự động Format HTML + Phân tách hàm</title>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.14.7/beautify-html.min.js"></script>
+        <style>
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                margin: 0;
+                padding: 25px;
+                background-color: #1e1e1e;
+                color: #d4d4d4;
             }
-            
-            // Cấu hình định dạng HTML
-            const formatted = html_beautify(rawCode, {
-                "indent_size": 4,
-                "indent_char": " ",
-                "max_preserve_newlines": 1,
-                "preserve_newlines": true,
-                "end_with_newline": false
-            });
-
-            outputBox.value = formatted;
-        }
-
-        function copyToClipboard() {
-            const outputBox = document.getElementById('outputCode');
-            if (!outputBox.value.trim()) {
-                alert("Chưa có kết quả để copy!");
-                return;
+            h2 {
+                color: #4ec9b0;
+                margin-bottom: 8px;
             }
-            
-            outputBox.select();
-            outputBox.setSelectionRange(0, 99999);
-            
-            navigator.clipboard.writeText(outputBox.value).then(() => {
-                const btn = document.querySelector('.copy-absolute');
-                btn.innerText = "✅ Đã copy!";
-                setTimeout(() => {
-                    btn.innerText = "📋 Copy";
-                }, 2000);
-            }).catch(err => {
-                alert("Lỗi khi copy: " + err);
-            });
-        }
-    </script>
+            .desc {
+                color: #858585;
+                font-size: 14px;
+                margin-bottom: 20px;
+            }
+            .container {
+                margin-bottom: 20px;
+                position: relative;
+            }
+            label {
+                display: block;
+                margin-bottom: 8px;
+                font-weight: bold;
+                color: #9cdcfe;
+            }
+            textarea {
+                width: 100%;
+                height: 340px;
+                font-family: 'Consolas', 'Courier New', monospace;
+                font-size: 14px;
+                padding: 14px;
+                border: 1px solid #3c3c3c;
+                border-radius: 6px;
+                background: #252526;
+                color: #ce9178;
+                box-sizing: border-box;
+                resize: vertical;
+                line-height: 1.45;
+            }
+            textarea:focus {
+                outline: none;
+                border-color: #007acc;
+            }
+            #outputCode {
+                color: #9cdcfe;
+            }
+            .btn-row {
+                display: flex;
+                gap: 10px;
+                margin-bottom: 15px;
+                flex-wrap: wrap;
+            }
+            button {
+                background-color: #007acc;
+                color: white;
+                border: none;
+                padding: 10px 18px;
+                font-size: 14px;
+                border-radius: 6px;
+                cursor: pointer;
+                font-weight: bold;
+                transition: background 0.2s;
+            }
+            button:hover {
+                background-color: #005999;
+            }
+            .copy-btn {
+                background-color: #28a745;
+            }
+            .copy-btn:hover {
+                background-color: #218838;
+            }
+            .clear-btn {
+                background-color: #c53030;
+            }
+            .clear-btn:hover {
+                background-color: #9b2c2c;
+            }
+            .output-wrapper {
+                position: relative;
+            }
+            .copy-absolute {
+                position: absolute;
+                top: 38px;
+                right: 15px;
+                padding: 6px 14px;
+                font-size: 13px;
+            }
+        </style>
+    </head>
 
-</body>
+    <body>
+
+        <h2>Công cụ Format HTML + Phân tách hàm (Auto)</h2>
+        <div class="desc">
+            Dán code vào ô trên → tự động format + thêm khoảng trống giữa các hàm. Có thể bấm nút để chạy lại.
+        </div>
+
+        <div class="btn-row">
+            <button onclick="formatMyCode()">✨ Format + Phân tách hàm</button>
+            <button class="clear-btn" onclick="clearAll()">🗑 Xóa hết</button>
+        </div>
+
+        <div class="container">
+            <label for="inputCode">Dán đoạn code cần sửa vào đây (Tự động chạy khi dán):</label>
+            <textarea id="inputCode" placeholder="Dán code HTML/JS bị lộn xộn vào đây..."></textarea>
+        </div>
+
+        <div class="container output-wrapper">
+            <label for="outputCode">Kết quả sau khi làm đẹp:</label>
+            <textarea id="outputCode" readonly placeholder="Kết quả sẽ hiển thị ở đây..."></textarea>
+            <button class="copy-btn copy-absolute" onclick="copyToClipboard()">📋 Copy</button>
+        </div>
+
+        <script>
+            const inputEl = document.getElementById('inputCode');
+            const outputEl = document.getElementById('outputCode');
+            
+            // Tự động format khi gõ hoặc dán
+            inputEl.addEventListener('input', formatMyCode);
+            inputEl.addEventListener('paste', () => {
+                setTimeout(formatMyCode, 10);
+            });
+            
+            // Cấu hình beautify
+            const beautifyConfig = {
+                indent_size: 4,
+                indent_char: " ",
+                max_preserve_newlines: 1,
+                preserve_newlines: true,
+                end_with_newline: false,
+                indent_inner_html: true,
+                wrap_line_length: 0
+            };
+            
+            // Thêm khoảng trống lớn giữa các function (giống editor trước)
+
+
+
+
+function smartInsertSpacing(codeText) {
+                const functionRegex = /(\n\s*(?:async\s+)?function\s+[a-zA-Z0-9_$]+\s*\(|\n\s*(?:const|let|var)\s+[a-zA-Z0-9_$]+\s*=\s*(?:async\s*)?\([^)]*\)\s*=>|\n\s*(?:const|let|var)\s+[a-zA-Z0-9_$]+\s*=\s*function\s*\()/g;
+            
+                return codeText.replace(functionRegex, function(match) {
+                    return "\n\n\n\n\n" + match.trimStart();
+                });
+            }
+
+
+
+
+function formatMyCode() {
+                const rawCode = inputEl.value;
+                if (!rawCode.trim()) {
+                    outputEl.value = "";
+                    return;
+                }
+            
+                // 1. Beautify trước
+                let formatted = html_beautify(rawCode, beautifyConfig);
+            
+                // 2. Thêm khoảng trống giữa các hàm
+                formatted = smartInsertSpacing(formatted);
+            
+                outputEl.value = formatted;
+            }
+
+
+
+
+function copyToClipboard() {
+                if (!outputEl.value.trim()) {
+                    alert("Chưa có kết quả để copy!");
+                    return;
+                }
+            
+                navigator.clipboard.writeText(outputEl.value).then(() => {
+                    const btn = document.querySelector('.copy-absolute');
+                    const oldText = btn.innerText;
+                    btn.innerText = "✅ Đã copy!";
+                    setTimeout(() => btn.innerText = oldText, 2000);
+                }).catch(err => {
+                    alert("Lỗi khi copy: " + err);
+                });
+            }
+
+
+
+
+function clearAll() {
+                inputEl.value = "";
+                outputEl.value = "";
+                inputEl.focus();
+            }
+        </script>
+    </body>
+
 </html>
